@@ -10,15 +10,17 @@ function stock(){
   D_OSM=$BASE/osm/$COUNTRY/$TILE
   D_TYPE=$BASE/type/$COUNTRY/$TILE
   D_FRACTION=$BASE/fraction/$COUNTRY/$TILE
+  D_FOOTPRINT=$BASE/building/$COUNTRY/$TILE
   D_HEIGHT=$BASE/height/$COUNTRY/$TILE
   D_STOCK=$BASE/stock/$COUNTRY/$DISTRICT/$TILE
   D_MI=$BASE/mi/$COUNTRY
 
   # INPUT RASTER
   BINARY_MASK=$D_MASK/$DISTRICT.tif
-  FRACTION=$D_FRACTION/FRACTIONS_BU-WV-NWV-W_clean.tif
-  HEIGHT=$D_HEIGHT/HEIGHT_HL_ML_MLP.tif
-  FUNCTION=$D_TYPE/PREDICTION_HL_ML_MLP.tif
+  FRACTION=$D_FRACTION/NLCD_2016_Impervious_L48_20190405.tif
+  FOOTPRINT=$D_FOOTPRINT/$DISTRICT.tif # this is new
+  HEIGHT=$D_HEIGHT/$DISTRICT-BUILDING-HEIGHT_HL_ML_MLP.tif
+  FUNCTION=$D_TYPE/$DISTRICT-building.tif # this is a placeholder (is now all C/I)
   STREET=$D_OSM/streets.tif
   STREETBRIDGE=$D_OSM/road-brdtun.tif
   RAIL=$D_OSM/railway.tif
@@ -63,10 +65,24 @@ function stock(){
   # GETTING STARTED
   #########################################################################
 
-  # INPUT MASK exists?
-  if [ ! -r $BINARY_MASK ]; then
-    exit 1
-  fi
+  # INPUT tests
+  if [ ! -r $BINARY_MASK ];  then echo "missing input"; exit 1; fi
+  if [ ! -r $BINARY_MASK ];  then echo "missing input"; exit 1; fi
+  if [ ! -r $FRACTION ];     then echo "missing input"; exit 1; fi
+  if [ ! -r $FOOTPRINT ];    then echo "missing input"; exit 1; fi
+  if [ ! -r $HEIGHT ];       then echo "missing input"; exit 1; fi
+  if [ ! -r $FUNCTION ];     then echo "missing input"; exit 1; fi
+  if [ ! -r $STREET ];       then echo "missing input"; exit 1; fi
+  if [ ! -r $STREETBRIDGE ]; then echo "missing input"; exit 1; fi
+  if [ ! -r $RAIL ];         then echo "missing input"; exit 1; fi
+  if [ ! -r $RAILBRIDGE ];   then echo "missing input"; exit 1; fi
+  if [ ! -r $APRON ];        then echo "missing input"; exit 1; fi
+  if [ ! -r $TAXI ];         then echo "missing input"; exit 1; fi
+  if [ ! -r $RUNWAY ];       then echo "missing input"; exit 1; fi
+  if [ ! -r $PARK ];         then echo "missing input"; exit 1; fi
+
+
+
 
   # make output dir and cd
   mkdir -p $D_STOCK
@@ -81,6 +97,7 @@ function stock(){
 
   # ROADS
   #########################################################################
+  {
 
   # motorway
   STREETMOTOR=$DISTRICT"_AREA_STREET_MOTOR.tif"
@@ -118,9 +135,11 @@ function stock(){
   STREETOTHERONBRIDGE=$DISTRICT"_AREA_STREET_OTHER_ON_BRIDGE.tif"
   gdal_calc.py -A $STREET --A_band=35 -Z $MASK --outfile=$STREETOTHERONBRIDGE --calc='(minimum((A),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
 
   # STREET BRIDGES / TUNNELS
   #########################################################################
+  {
 
   # bridge under motorway (excl. street)
   BRIDGEMOTOR=$DISTRICT"_AREA_STREET_BRIDGE_UNDER_MOTOR.tif"
@@ -134,9 +153,12 @@ function stock(){
   TUNNELSTREET=$DISTRICT"_AREA_STREET_TUNNEL.tif"
   gdal_calc.py -A $STREETBRIDGE --A_band=2 -Z $MASK --outfile=$TUNNELSTREET --calc='(minimum((A),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
 
   # OTHER INFRASTRUCTURE
   #########################################################################
+  {
 
   # airport
   OTHERRUNWAY=$DISTRICT"_AREA_RUNWAY.tif"
@@ -146,9 +168,11 @@ function stock(){
   OTHERPARKING=$DISTRICT"_AREA_PARKING.tif"
   gdal_calc.py -A $PARK -Z $MASK --outfile=$OTHERPARKING --calc='(minimum((A),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
 
   # RAILS
   #########################################################################
+  {
 
   # regular rails
   RAILWAY=$DISTRICT"_AREA_RAIL_RAILWAY.tif"
@@ -178,9 +202,12 @@ function stock(){
   SUBWAYSURFACE=$DISTRICT"_AREA_RAIL_SUBWAY_SURFACE.tif"
   gdal_calc.py -A $RAIL  --A_band=12 -Z $MASK --outfile=$SUBWAYSURFACE --calc='(minimum((A),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
 
   # RAIL BRIDGES / TUNNELS
   #########################################################################
+  {
 
   # bridge (excl. rail)
   BRIDGERAIL=$DISTRICT"_AREA_RAIL_BRIDGE.tif"
@@ -190,9 +217,11 @@ function stock(){
   TUNNELRAIL=$DISTRICT"_AREA_RAIL_TUNNEL.tif"
   gdal_calc.py -A $RAILBRIDGE --A_band=2 -Z $MASK --outfile=$TUNNELRAIL --calc='(minimum((A),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
 
   # ABOVEGROUND INFRASTRUCTURE
   #########################################################################
+  {
 
   # sum all overground street infrastructure
   AGINF_STREET=$DISTRICT"_AREA_AG_STREET_INFRASTRUCTURE.tif"
@@ -210,9 +239,12 @@ function stock(){
   AGINF=$DISTRICT"_AREA_AG_INFRASTRUCTURE.tif"
   gdal_calc.py -A $AGINF_STREET -B $AGINF_OTHER -C $AGINF_RAIL -Z $MASK --outfile=$AGINF --calc='(minimum((A+B+C),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
 
   # BUILDINGS
   #########################################################################
+  {
 
   # clean noise at lower builtup-fraction end
   BUILTUP=$DISTRICT"_AREA_BUILTUP.tif"
@@ -220,7 +252,7 @@ function stock(){
 
   # building
   BUILDING=$DISTRICT"_AREA_BUILDING.tif"
-  gdal_calc.py -A $BUILTUP -B $AGINF -Z $MASK --outfile=$BUILDING --calc='(maximum(minimum((single(A)-(B*(B>0)))*0.526,100),0)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
+  cp $FOOTPRINT $BUILDING
 
   # building height
   HEIGHT2=$DISTRICT"_HEIGHT_BUILDING.tif"
@@ -298,9 +330,21 @@ function stock(){
   VOLUME=$DISTRICT"_VOLUME_BUILDING.tif"
   gdal_calc.py -A $VOLUME_LIGHT -B $VOLUME_SINGLE -C $VOLUME_MULTI -D $VOLUME_HIGH -E $VOLUME_COMM -Z $MASK --outfile=$VOLUME --calc='((A+B+C+D+E)*Z)' --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
+
+  # OTHER IMPERVIOUS
+  #########################################################################
+  {
+  IMPERV=$DISTRICT"_AREA_IMPERVIOUSNESS.tif"
+  gdal_calc.py -A $AGINF -B $FOOTPRINT -C $FRACTION -Z $MASK --outfile=$IMPERV --calc='(maximum(C-(A+B),0)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
+
+  }
+
 
   # STREET STOCKS
   #########################################################################
+  {
 
   # motorways
   MASS_STREET_MOTOR=(x x x x x x x x x x x x x x x)
@@ -471,9 +515,12 @@ function stock(){
   MASS_STREET_TOTAL=$DISTRICT"_MASS_STREET_TOTAL.tif"
   gdal_calc.py -A $MASS_STREET_MOTOR_TOTAL -B $MASS_STREET_PRIMARY_TOTAL -C $MASS_STREET_SECONDARY_TOTAL -D $MASS_STREET_TERTIARY_TOTAL -E $MASS_STREET_OTHER_TOTAL -F $MASS_STREET_GRAVEL_TOTAL -G $MASS_STREET_MOTOR_ON_BRIDGE_TOTAL -H $MASS_STREET_OTHER_ON_BRIDGE_TOTAL -I $MASS_STREET_BRIDGE_UNDER_MOTOR_TOTAL -J $MASS_STREET_BRIDGE_UNDER_OTHER_TOTAL -K $MASS_STREET_TUNNEL_TOTAL -Z $MASK --outfile=$MASS_STREET_TOTAL --calc="(A+B+C+D+E+F+G+H+I+J+K)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
 
   # OTHER INFRASTRUCTURE STOCKS
   #########################################################################
+  {
 
   # runways
   MASS_RUNWAY=(x x x x x x x x x x x x x x x)
@@ -503,18 +550,37 @@ function stock(){
   done
 
   gdal_calc.py -A ${MASS_PARKING[0]} -B ${MASS_PARKING[1]} -C ${MASS_PARKING[2]} -D ${MASS_PARKING[3]} -E ${MASS_PARKING[4]} -F ${MASS_PARKING[5]} -G ${MASS_PARKING[6]} -H ${MASS_PARKING[7]} -I ${MASS_PARKING[8]} -J ${MASS_PARKING[9]} -K ${MASS_PARKING[10]} -L ${MASS_PARKING[11]} -M ${MASS_PARKING[12]} -N ${MASS_PARKING[13]} -O ${MASS_PARKING[14]} -Z $MASK --outfile=$MASS_PARKING_TOTAL --calc="(A+B+C+D+E+F+G+H+I+J+K+L+M+N+O)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
+  
+  
+  # other imperviousness (use parking MI)
+  MASS_IMPERV=(x x x x x x x x x x x x x x x)
+  MASS_IMPERV_TOTAL=$DISTRICT"_MASS_IMPERV_TOTAL.tif"
+
+  for i in {0..14}; do
+
+    MASS_IMPERV[i]=$DISTRICT"_MASS_IMPERV_${TYPE[i]}.tif"
+
+    gdal_calc.py -A $OTHERIMPERV -Z $MASK --outfile=${MASS_IMPERV[i]} --calc="(A*${MI_PARKING[i]}*Z)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
+
+  done
+
+  gdal_calc.py -A ${MASS_IMPERV[0]} -B ${MASS_IMPERV[1]} -C ${MASS_IMPERV[2]} -D ${MASS_IMPERV[3]} -E ${MASS_IMPERV[4]} -F ${MASS_IMPERV[5]} -G ${MASS_IMPERV[6]} -H ${MASS_IMPERV[7]} -I ${MASS_IMPERV[8]} -J ${MASS_IMPERV[9]} -K ${MASS_IMPERV[10]} -L ${MASS_IMPERV[11]} -M ${MASS_IMPERV[12]} -N ${MASS_IMPERV[13]} -O ${MASS_IMPERV[14]} -Z $MASK --outfile=$MASS_IMPERV_TOTAL --calc="(A+B+C+D+E+F+G+H+I+J+K+L+M+N+O)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
 
   # total mass of other infrastructure
   MASS_OTHER_TOTAL=$DISTRICT"_MASS_OTHER_TOTAL.tif"
-  gdal_calc.py -A $MASS_RUNWAY_TOTAL -B $MASS_PARKING_TOTAL -Z $MASK --outfile=$MASS_OTHER_TOTAL --calc="(A+B)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
+  gdal_calc.py -A $MASS_RUNWAY_TOTAL -B $MASS_PARKING_TOTAL -C $MASS_IMPERV_TOTAL -Z $MASK --outfile=$MASS_OTHER_TOTAL --calc="(A+B+C)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
   # total mass of street and other infrastructure
   MASS_STREETANDOTHER_TOTAL=$DISTRICT"_MASS_STREETANDOTHER_TOTAL.tif"
   gdal_calc.py -A $MASS_STREET_TOTAL -B $MASS_OTHER_TOTAL -Z $MASK --outfile=$MASS_STREETANDOTHER_TOTAL --calc="(A+B)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
+
   # RAIL STOCKS
   #########################################################################
+  {
 
   # regular rails
   MASS_RAIL_RAILWAY=(x x x x x x x x x x x x x x x)
@@ -640,9 +706,12 @@ function stock(){
   MASS_RAIL_TOTAL=$DISTRICT"_MASS_RAIL_TOTAL.tif"
   gdal_calc.py -A $MASS_RAIL_RAILWAY_TOTAL -B $MASS_RAIL_TRAM_TOTAL -C $MASS_RAIL_SUBWAY_TOTAL -D $MASS_RAIL_SUBWAY_BRIDGE_TOTAL -E $MASS_RAIL_SUBWAY_SURFACE_TOTAL -F $MASS_RAIL_OTHER_TOTAL -G $MASS_RAIL_BRIDGE_TOTAL -H $MASS_RAIL_TUNNEL_TOTAL -Z $MASK --outfile=$MASS_RAIL_TOTAL --calc="(A+B+C+D+E+F+G+H)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
 
   # BUILDING STOCKS
   #########################################################################
+  {
 
   # lightweight buildings
   MASS_BUILDING_LIGHT=(x x x x x x x x x x x x x x x)
@@ -733,9 +802,12 @@ function stock(){
   MASS_BUILDING_MULTIHIGH_TOTAL=$DISTRICT"_MASS_BUILDING_MULTIFAMILYHIGHRISE_TOTAL.tif"
   gdal_calc.py -B $MASS_BUILDING_MULTI_TOTAL -C $MASS_BUILDING_HIGH_TOTAL -Z $MASK --outfile=$MASS_BUILDING_MULTIHIGH_TOTAL --calc="(B+C)" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
+  }
+
 
   # TOTAL STOCK
   #########################################################################
+  {
 
   # total mass of all stocks
   MASS_STOCK_TOTAL=$DISTRICT"_MASS_TOTAL_10m_t.tif"
@@ -768,6 +840,7 @@ function stock(){
   MASS_STOCK_TOTAL_10000=$DISTRICT"_MASS_TOTAL_10000m_gt.tif"
   gdal_calc.py -A $TEMP10000 --outfile=$MASS_STOCK_TOTAL_10000 --calc="A*1000000/1000000000" --NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --overwrite &> /dev/null
 
+  }
 
   rm temp_1*
 
