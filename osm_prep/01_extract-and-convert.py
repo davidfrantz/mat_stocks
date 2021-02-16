@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 import os
 import sys
+import ast
 import glob
 import spatialite
 import re
@@ -10,12 +11,15 @@ import re
     
 #ORIG = "01_raw_osm"
 ORIG = str(sys.argv[1]).split(" ")[0]  ## folder that holds original osm data
+print(ORIG)
 #COUNTRIES =['us-west'] #'bosnia'#'bulgaria'#'croatia'#'kosovo'#'montenegro'#'macedonia'#'romania' #'serbia'#'slovenia'#'czech-republic'#'poland' #'india' #'us-west' #'us-south' #'us-pacific' #'us-northeast' #'us-midwest' #'us' #"switzerland" #"denmark" #"belgium" #"netherlands" #"ireland_and_northern_ireland2 #"great_britain" #"japan"  #"luxemburg", #"austria", "germany", 
-COUNTRIES = str(sys.argv[2]).split(" ")[0]  ## countries to be computed 
-#OUTDIR='02_data_us'
+r = str(sys.argv[2]).split(" ")[0]  ## countries to be computed 
+c = ast.literal_eval(r)
+COUNTRIES = [n.strip() for n in c]
 OUTDIR= str(sys.argv[3]).split(" ")[0]
 MERGEDDIR = os.path.join(OUTDIR, 'merged')
 DBDIR = os.path.join(OUTDIR, 'db')
+
 
 DATASETS = {
 'highway': {'query': 'highway=*', 'type': ['lines'], 'fields': ['other_tags:surface', 'other_tags:tunnel', 'other_tags:bridge'], 'calculated': ['breite']},
