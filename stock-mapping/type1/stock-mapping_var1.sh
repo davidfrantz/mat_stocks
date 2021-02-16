@@ -17,7 +17,7 @@ function stock(){
   # INPUT RASTER
   BINARY_MASK=$D_MASK/$DISTRICT.tif
   FRACTION=$D_FRACTION/FRACTIONS_BU-WV-NWV-W_clean.tif
-  HEIGHT=$D_HEIGHT/HEIGHT_HL_ML_MLP.tif
+  HEIGHT=$D_HEIGHT/BUILDING-HEIGHT_GLOBAL_HL_ML_MLP.tif
   FUNCTION=$D_TYPE/PREDICTION_HL_ML_MLP.tif
   STREET=$D_OSM/streets.tif
   STREETBRIDGE=$D_OSM/road-brdtun.tif
@@ -188,7 +188,7 @@ function stock(){
 
   # tunnel (excl. rail)
   TUNNELRAIL=$DISTRICT"_AREA_RAIL_TUNNEL.tif"
-  gdal_calc.py -A $RAILBRIDGE --A_band=2 -Z $MASK --outfile=$TUNNELRAIL --calc='(minimum((A),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
+  gdal_calc.py -A $RAILBRIDGE --A_band=2 -B $RAIL --B_band=6 -Z $MASK --outfile=$TUNNELRAIL --calc='(minimum(maximum(A-B, 0),100)*Z)' --NoDataValue=255 --type=Byte --format=GTiff --creation-option='COMPRESS=LZW' --creation-option='PREDICTOR=2' --creation-option='NUM_THREADS=ALL_CPUS' --creation-option='BIGTIFF=YES' --creation-option=BLOCKXSIZE=3000 --creation-option=BLOCKYSIZE=300 --overwrite &> /dev/null
 
 
   # ABOVEGROUND INFRASTRUCTURE
@@ -815,7 +815,7 @@ export DISTRICT=$DISTRICT
 echo "Computing Stock:"
 parallel -a $BASE/tiles/$DISTRICT.txt -j $NJOB --eta stock {}
 #stock X0069_Y0043
-
+exit
 echo "Computing Virtual Mosaics:"
 cd $BASE"/stock/"$COUNTRY"/"$DISTRICT
 force-mosaic . #&> /dev/null
