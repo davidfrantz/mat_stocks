@@ -3,28 +3,34 @@ import os
 import sys
 import subprocess
 import re
-import osr, ogr
+import osr
+from osgeo import ogr
 
 
 ##### translates sqlite into shape if necessary and reprojects to a given reference system file
 ##### _______________________________________
     
-inputPath = str(sys.argv[1]).split(" ")[0]  ## osm db .sqlite
-country = str(sys.argv[2]).split(" ")[0]  ## country to be computed 
-outputDir = str(sys.argv[3]).split(" ")[0]  ## output directory 
-reprojectedDir = str(sys.argv[4]).split(" ")[0]  ## output directory 
-type = str(sys.argv[5]).split(" ")[0]  ## "line" or "polygon" 
-refShp = str(sys.argv[6]).split(" ")[0]  ## shapefile with srs reference
-outputFormat = str(sys.argv[7]).split(" ")[0]  ## ".shp" or ".sqlite"
 
-def main():    
+
+def main():  
+    inputPath = str(sys.argv[1]).split(" ")[0]  ## osm db .sqlite
+    country = str(sys.argv[2]).split(" ")[0]  ## country to be computed 
+    outD = str(sys.argv[3]).split(" ")[0]  ## output directory 
+    type = str(sys.argv[4]).split(" ")[0]  ## "line" or "polygon" 
+    refShp = str(sys.argv[5]).split(" ")[0]  ## shapefile with srs reference
+    outputFormat = str(sys.argv[6]).split(" ")[0]  ## ".shp" or ".sqlite"
+      
     base=os.path.basename(inputPath)
     fn = os.path.splitext(base)[0]
-    
-    outputDir = outputDir + "/" + country + "/extracted/"
+ 
+    outputDir = outD + "/" + country + "/extracted/"
     outputPath = outputDir + fn + ".shp"
-    reprojectedDir = outputDir + "/" + country + "/reprojected/"
-    reprojectedPath = reprojectedDir + fn + ".shp"
+    reprojectedDir = outD + "/" + country + "/reprojected/"
+    
+    if(outputFormat == ".shp"):
+        reprojectedPath = reprojectedDir + fn + ".shp"
+    elif(outputFormat == ".sqlite"):
+        reprojectedPath = reprojectedDir + fn + ".sqlite"
     
     if not os.path.exists(outputDir):
         os.makedirs(outputDir)
@@ -32,15 +38,16 @@ def main():
         os.makedirs(reprojectedDir)
         
     if(type == "line"):
-        geoType = ogr.wkbLine
-        m = "multilines"
-        p = "LINE"
+        geoType = ogr.wkbLineString
+        m = "lines"
+        p = "LINESTRING"
     elif(type == "polygon"):
         geoType = ogr.wkbPolygon
         m = "multipolygons"
         p = "POLYGON"
     
-    subprocess.call(["ogr2ogr", "-f", "ESRI Shapefile", outputPath, inputPath, "-dsco", "SPATIALITE=YES", "-sql","SELECT * FROM {m}", "-nlt", '{p}')
+    f = "ESRI Shapefile"   
+    subprocess.call(["ogr2ogr", "-f", f, outputPath, inputPath, "-dsco", "SPATIALITE=NO", "-sql","SELECT * FROM " + m, "-nlt", p])
     
     ##### reproject shape to target srs
     #refShp = "/data/Jakku/osm_test/EQUI7_V13_AF_PROJ_LAND.shp"
@@ -49,8 +56,10 @@ def main():
     dataset = driver.Open(refShp)
     inLayer = dataset.GetLayer()
     targetRef = inLayer.GetSpatialRef()
-    
+
     dataset1 = driver.Open(outputPath)
+    print(outputPath)
+    print(dataset1)
     inLayer1 = dataset1.GetLayer()
     sourceRef = inLayer1.GetSpatialRef()
 
@@ -62,7 +71,7 @@ def main():
     if(outputFormat == ".shp"):
         driver2 = ogr.GetDriverByName("ESRI Shapefile")
     elif(outputFormat == ".sqlite"):
-        ogr.GetDriverByName("SQLite")
+        driver2 = ogr.GetDriverByName("SQLite")
         
     if os.path.exists(outputShapefile):
         driver2.DeleteDataSource(outputShapefile)
