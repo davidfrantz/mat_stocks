@@ -345,6 +345,12 @@ def main():
                 bfwidth = 2
             elif (feature.GetField(field) == "construction"):
                 bfwidth = 8.5
+            elif (feature.GetField(field) == "miniature"):
+                bfwidth = 2
+            elif (feature.GetField(field) == "monorail"):
+                bfwidth = 3.5
+            elif (feature.GetField(field) == "funicular"):
+                bfwidth = 3.5
             else:
                 bfwidth = 99999
                 continue
