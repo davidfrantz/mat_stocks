@@ -9,7 +9,7 @@
 import os
 os.environ['OMP_NUM_THREADS'] = '1'
 
-import gdal
+from osgeo import gdal
 import sys
 import time
 from hubflow.core import *
@@ -26,15 +26,13 @@ vectorBase = str(sys.argv[4]).split(" ")[0] ##"/us-northeast-highway.shp"
 referenceGridBase = str(sys.argv[5]).split(" ")[0] ## "/NLCD_2016_Impervious_L48_20190405.tif"
 country = str(sys.argv[6]).split(" ")[0]  ## country
 ll = str(sys.argv[7]).split(" ")[0]  ##  can take "highway", "railway", "apron", "parking", "runway", "taxiway", "rail-brdtun", "road-brdtun"
-outDir = str(sys.argv[7]).split(" ")[0]  ##  c"/data/Alderaan/osm_test/07_rasterized/"
-
+outDir = str(sys.argv[8]).split(" ")[0]  ##  c"/data/Alderaan/osm_test/07_rasterized/"
 
 s = time.time()
-vectorPath = vectorDir + "/" + tile + "/" + vectorBase
-referenceGridPath = referenceGridDir +" /" + tile + "/" + referenceGridBase
-
+vectorPath = vectorDir + "/" + country + "/" + vectorBase
+referenceGridPath = referenceGridDir + "/" + tile + "/" + referenceGridBase
+print(referenceGridPath)
 options = ['COMPRESS=LZW', 'BIGTIFF=YES', 'INTERLEAVE=BAND']
-
 
 nm = ll
 classes = 1
@@ -58,14 +56,15 @@ drv = ogr.GetDriverByName('ESRI Shapefile')
 drv2 = ogr.GetDriverByName('ESRI Shapefile')
 
 s = time.time()
-
-if not os.path.exists(outDir +"/" + country + "-" + ll + "/" + tile + "/"):
+print(outDir)
+if(1==1):
+#if not os.path.exists(outDir +"/" + country + "-" + ll + "/" + tile + "/"):
     if not os.path.exists(outDir + "/" + country + "-" + ll + "/vector/" + tile + "/"):
         os.makedirs(outDir + "/" + country + "-" + ll + "/vector/" + tile + "/")
         os.makedirs(outDir + "/temp/" + country + "-" + ll + "/vector/" + tile + "/")
 
     tempOutVectorPath = outDir + "/" + country + "-" + ll + "/vector/" + tile + "/fltemp.shp"
-
+    print(tempOutVectorPath)
     controls = ApplierControls()
     #controls.setBlockFullSize()
     #controls.setBlockSize(1024)
@@ -80,15 +79,16 @@ if not os.path.exists(outDir +"/" + country + "-" + ll + "/" + tile + "/"):
     lrx = ulx + sizeX
     lry = uly + sizeY
 	
+    print([ulx, lry, lrx, uly])
+    
     ds_in = gdal.OpenEx(vectorPath)
     ds_out = gdal.VectorTranslate(tempOutVectorPath, ds_in, format = 'ESRI Shapefile', spatFilter = [ulx, lry, lrx, uly])
    
-    d = drv.Open(tempOutVectorPath)
+    #d = drv.Open(tempOutVectorPath)
 
-    l = d.GetLayer()
-    spatialRef = l.GetSpatialRef()
-    print(l.GetExtent())
-#    del ds_out
+    #l = d.GetLayer()
+    #spatialRef = l.GetSpatialRef()
+    del ds_out
 
     dataSet = drv.Open(tempOutVectorPath, 1)
     layer = dataSet.GetLayer()
@@ -121,11 +121,14 @@ if not os.path.exists(outDir +"/" + country + "-" + ll + "/" + tile + "/"):
         rd = None
 
     if(featureCount != 0):
+        print(attribute)
         classification = VectorClassification(tempOutVectorPath, attribute, minOverallCoverage=0, minDominantCoverage=0, oversampling=10)
+        print(classification)
         print("Classification loaded")
         fraction = Fraction.fromClassification(outDir + "/temp/" + country + "-" + ll + "/" + tile + "/" + nm + ".tif", classification, grid=grid, controls=controls)
         print("Fraction created")
         fraction = fraction.array()
+        print(np.amax(fraction))
         fraction[fraction < 0] = 0
         if(len(fraction) < classes):
             arr = np.zeros((classes-len(fraction), rds.xsize(), rds.ysize()))

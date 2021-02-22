@@ -1,7 +1,8 @@
 #!/usr/bin/python3
 import os
+import sys
 import ogr
-from gdal import osr
+from gdal import osr, ogr
 import pandas as pd
 
 ##### buffers road and rail data based on a given id and a given feature width
@@ -12,18 +13,12 @@ country = str(sys.argv[2]).split(" ")[0]  ## country to be computed
 type = str(sys.argv[3]).split(" ")[0]  ## "rail" or "road" 
 bufferDir = str(sys.argv[4]).split(" ")[0]  ## output directory for buffered vectors
 
-
-reprojectedDir = str(sys.argv[4]).split(" ")[0]  ## output directory 
-type = str(sys.argv[5]).split(" ")[0]  ## "line" or "polygon" 
-outputFormat = str(sys.argv[7]).split(" ")[0]  ## ".shp" or ".sqlite"
-
-
 def main():
     counter = 0
     
     if(type == "rail"):
         field = "railway"
-	elif(type == "road"):
+    elif(type == "road"):
         field = "category"
         
 	## Modify: Lines 40 to 50
@@ -62,9 +57,9 @@ def main():
     base=os.path.basename(inputPath)
     fn = os.path.splitext(base)[0]
     
-   if(extension == ".shp"):
+    if(extension == ".shp"):
        bufferedFilePath = bufferDir + "/" + country + "/" + fn + ".shp"
-   elif(extension == ".sqlite"):
+    elif(extension == ".sqlite"):
        bufferedFilePath = bufferDir + "/" + country + "/" + fn + ".sqlite"
     	
     bufferedFile = driver.CreateDataSource(bufferedFilePath)
@@ -350,6 +345,12 @@ def main():
                 bfwidth = 2
             elif (feature.GetField(field) == "construction"):
                 bfwidth = 8.5
+            elif (feature.GetField(field) == "miniature"):
+                bfwidth = 2
+            elif (feature.GetField(field) == "monorail"):
+                bfwidth = 3.5
+            elif (feature.GetField(field) == "funicular"):
+                bfwidth = 3.5
             else:
                 bfwidth = 99999
                 continue
