@@ -3,13 +3,13 @@
 
 include { multijoin } from './defs.nf'
 
-include { mass as mass_lightweight }           from './mass.nf'
-include { mass as mass_singlefamily }          from './mass.nf'
-include { mass as mass_multifamily }           from './mass.nf'
-include { mass as mass_commercial_industrial } from './mass.nf'
-include { mass as mass_commercial_innercity }  from './mass.nf'
-include { mass as mass_highrise }              from './mass.nf'
-include { mass as mass_skyscraper }            from './mass.nf'
+include { mass          as mass_lightweight }           from './mass.nf'
+include { mass_climate5 as mass_singlefamily }          from './mass.nf'
+include { mass          as mass_multifamily }           from './mass.nf'
+include { mass          as mass_commercial_industrial } from './mass.nf'
+include { mass          as mass_commercial_innercity }  from './mass.nf'
+include { mass          as mass_highrise }              from './mass.nf'
+include { mass          as mass_skyscraper }            from './mass.nf'
 
 
 workflow mass_building {

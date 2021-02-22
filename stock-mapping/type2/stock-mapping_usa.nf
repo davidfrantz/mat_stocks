@@ -31,20 +31,21 @@ params.dir = [
 
 // raster collections
 params.raster = [
-    "mask":           [params.dir.mask,       "5km.tif"],
-    "street":         [params.dir.osm,        "streets.tif"],
-    "street_brdtun":  [params.dir.osm,        "road-brdtun.tif"],
-    "rail":           [params.dir.osm,        "railway.tif"],
-    "rail_brdtun":    [params.dir.osm,        "rail-brdtun.tif"],
-    "apron":          [params.dir.osm,        "apron.tif"],
-    "taxi":           [params.dir.osm,        "taxiway.tif"],
-    "runway":         [params.dir.osm,        "runway.tif"],
-    "parking":        [params.dir.osm,        "parking.tif"],
-    "impervious":     [params.dir.impervious, "NLCD_2016_Impervious_L48_20190405_canada-cleaned.tif"],
-    "footprint":      [params.dir.footprint,  "building.tif"],
-    "height":         [params.dir.height,     "BUILDING-HEIGHT_HL_ML_MLP.tif"],
-    "type":           [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
-    "street_climate": [params.dir.climate,    "road_climate.tif"]
+    "mask":             [params.dir.mask,       "5km.tif"],
+    "street":           [params.dir.osm,        "streets.tif"],
+    "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
+    "rail":             [params.dir.osm,        "railway.tif"],
+    "rail_brdtun":      [params.dir.osm,        "rail-brdtun.tif"],
+    "apron":            [params.dir.osm,        "apron.tif"],
+    "taxi":             [params.dir.osm,        "taxiway.tif"],
+    "runway":           [params.dir.osm,        "runway.tif"],
+    "parking":          [params.dir.osm,        "parking.tif"],
+    "impervious":       [params.dir.impervious, "NLCD_2016_Impervious_L48_20190405_canada-cleaned.tif"],
+    "footprint":        [params.dir.footprint,  "building.tif"],
+    "height":           [params.dir.height,     "BUILDING-HEIGHT_HL_ML_MLP.tif"],
+    "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
+    "street_climate":   [params.dir.climate,    "road_climate.tif"],
+    "building_climate": [params.dir.climate,    "building_climate.tif"]
 ]
 
 // MI files
@@ -75,7 +76,7 @@ params.threshold = [
     "height_building":   2,
     "height_mf":         10,
     "height_highrise":   30,
-    "height_skyscraper": 150,
+    "height_skyscraper": 75,
 
     // area thresholds
     "area_impervious":   50,
@@ -320,9 +321,11 @@ workflow {
             .combine(
                 mi.out.building.map{ tab -> [tab.material, tab.lightweight]}
             ),
-        volume_building.out.singlefamily
+        multijoin([volume_building.out.singlefamily, collection.out.building_climate], [0,1])
             .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.singlefamily]}
+                mi.out.building.map{ tab -> [tab.material, 
+                    tab.singlefamily_climate1, tab.singlefamily_climate2, tab.singlefamily_climate3, 
+                    tab.singlefamily_climate4, tab.singlefamily_climate5]}
             ),
         volume_building.out.multifamily
             .combine(

@@ -815,7 +815,7 @@ export DISTRICT=$DISTRICT
 echo "Computing Stock:"
 parallel -a $BASE/tiles/$DISTRICT.txt -j $NJOB --eta stock {}
 #stock X0069_Y0043
-exit
+
 echo "Computing Virtual Mosaics:"
 cd $BASE"/stock/"$COUNTRY"/"$DISTRICT
 force-mosaic . #&> /dev/null
