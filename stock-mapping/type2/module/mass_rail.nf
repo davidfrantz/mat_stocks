@@ -3,6 +3,7 @@
 
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
 
 include { mass as mass_railway }         from './mass.nf'
 include { mass as mass_tram }            from './mass.nf'
@@ -47,6 +48,21 @@ workflow mass_rail {
         .filter{ it[2].equals('total')}
     )
 
+    all_published = 
+        mass_rail_total.out
+        .mix(   mass_railway.out,
+                mass_tram.out,
+                mass_subway.out,
+                mass_subway_elevated.out,
+                mass_subway_surface.out,
+                mass_other.out,
+                mass_bridge.out,
+                mass_tunnel.out)
+        .map{
+            [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] + "/mass/" + it[2] ] }
+
+    pyramid(all_published)
+
     emit:
     total = mass_rail_total.out
 
@@ -64,7 +80,7 @@ process mass_rail_total {
         file(other), file(bridge), file(tunnel)
 
     output:
-    tuple val(tile), val(state), file('mass_rail_total.tif')
+    tuple val(tile), val(state), val(material), file('mass_rail_total.tif')
 
     publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
 

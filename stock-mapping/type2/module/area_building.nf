@@ -2,7 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
-
+include { pyramid }   from './pyramid.nf'
 
 workflow area_building {
 
@@ -20,6 +20,19 @@ workflow area_building {
     area_building_mobilehomes(multijoin([area, type], [0,1]))
     area_building_lightweight(multijoin([area_building_garages.out, area_building_mobilehomes.out], [0,1]))
 
+    all_published = 
+        area_building_lightweight.out
+        .mix(   area_building_singlefamily.out,
+                area_building_multifamily.out,
+                area_building_commercial_industrial.out,
+                area_building_commercial_innercity.out,
+                area_building_highrise.out,
+                area_building_skyscraper.out)
+        .map{
+            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
+
+    pyramid(all_published)
+
     emit:
     lightweight           = area_building_lightweight.out
     singlefamily          = area_building_singlefamily.out
@@ -30,6 +43,7 @@ workflow area_building {
     skyscraper            = area_building_skyscraper.out
 
 }
+
 
 // building area of singlefamily (excl. garages)
 process area_building_singlefamily {

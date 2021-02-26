@@ -11,8 +11,8 @@ workflow property_building {
 
     main:
     height_building(height)
-    area_building(multijoin([footprint, height], [0,1]))
-    type_building(multijoin([type, height], [0,1]))
+    area_building(multijoin([footprint, height_building.out], [0,1]))
+    type_building(multijoin([type, height_building.out], [0,1]))
 
     emit:
     height = height_building.out

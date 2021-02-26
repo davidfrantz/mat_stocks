@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
 
 
 workflow area_other {
@@ -12,6 +13,14 @@ workflow area_other {
     main: 
     area_airport(multijoin([runway, taxi, apron], [0,1]))
     area_parking(parking)
+
+    all_published = 
+        area_airport.out
+        .mix(   area_parking.out)
+        .map{
+            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
+
+    pyramid(all_published)
 
     emit:
     airport = area_airport.out

@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
 
 include { volume as volume_building_lightweight           } from './volume.nf'
 include { volume as volume_building_singlefamily          } from './volume.nf'
@@ -39,6 +40,19 @@ workflow volume_building {
         multijoin([area_highrise, height], [0,1]))
     volume_building_skyscraper(
         multijoin([area_skyscraper, height], [0,1]))
+
+    all_published = 
+        volume_building_lightweight.out
+        .mix(   volume_building_singlefamily.out,
+                volume_building_multifamily.out,
+                volume_building_commercial_industrial.out,
+                volume_building_commercial_innercity.out,
+                volume_building_highrise.out,
+                volume_building_skyscraper.out)
+        .map{
+            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/volume/building" ] }
+
+    pyramid(all_published)
 
     emit:
     lightweight           = volume_building_lightweight.out

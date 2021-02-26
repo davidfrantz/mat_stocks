@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
 
 
 workflow area_rail {
@@ -19,6 +20,21 @@ workflow area_rail {
     area_rail_subway_surface(rail)
     area_rail_bridge(rail_brdtun)
     area_rail_tunnel(multijoin([rail_brdtun, rail], [0,1]))
+
+    all_published = 
+        area_rail_railway.out
+        .mix(   area_rail_tram.out,
+                area_rail_other.out,
+                area_rail_exclude.out,
+                area_rail_subway.out,
+                area_rail_subway_elevated.out,
+                area_rail_subway_surface.out,
+                area_rail_bridge.out,
+                area_rail_tunnel.out)
+        .map{
+            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
+
+    pyramid(all_published)
 
     emit:
     railway         = area_rail_railway.out

@@ -1,6 +1,8 @@
 /** area for street types
 -----------------------------------------------------------------------**/
 
+include { pyramid } from './pyramid.nf'
+
 
 workflow area_street {
 
@@ -20,6 +22,24 @@ workflow area_street {
     area_street_bridge_motorway(street_brdtun)
     area_street_bridge_other(street_brdtun)
     area_street_tunnel(street_brdtun)
+
+    all_published = 
+        area_street_motorway.out
+        .mix(   area_street_primary.out,
+                area_street_secondary.out,
+                area_street_tertiary.out,
+                area_street_local.out,
+                area_street_track.out,
+                area_street_exclude.out,
+                area_street_motorway_elevated.out,
+                area_street_other_elevated.out,
+                area_street_bridge_motorway.out,
+                area_street_bridge_other.out,
+                area_street_tunnel.out)
+        .map{
+            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/street" ] }
+
+    pyramid(all_published)
 
     emit:
     motorway          = area_street_motorway.out

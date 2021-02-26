@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
 
 workflow mass_grand_total {
 
@@ -15,13 +16,23 @@ workflow mass_grand_total {
            [street, 
             rail, 
             other, 
-            building], [0,1]
+            building], [0,1,2]
         )
     ) \
     | mass_grand_total_t_10m2_nodata_remove \
     | mass_grand_total_kt_100m2 \
     | mass_grand_total_Mt_1km2 \
     | mass_grand_total_Gt_10km2
+
+    all_published = 
+        mass_grand_total_t_10m2.out
+        .mix(   mass_grand_total_kt_100m2.out,
+                mass_grand_total_Mt_1km2.out,
+                mass_grand_total_Gt_10km2.out)
+        .map{
+            [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] ] }
+
+    pyramid(all_published)
 
 }
 
@@ -31,11 +42,11 @@ process mass_grand_total_t_10m2 {
     label 'mem_4'
 
     input:
-    tuple val(tile), val(state), 
+    tuple val(tile), val(state), val(material), 
         file(street), file(rail), file(other), file(building)
 
     output:
-    tuple val(tile), val(state), file('mass_grand_total_t_10m2.tif')
+    tuple val(tile), val(state), val(material), file('mass_grand_total_t_10m2.tif')
 
     publishDir "$params.dir.pub/$state/$tile", mode: 'copy'
 
@@ -56,10 +67,10 @@ process mass_grand_total_t_10m2 {
 process mass_grand_total_t_10m2_nodata_remove {
 
     input:
-    tuple val(tile), val(state), file(mass)
+    tuple val(tile), val(state), val(material), file(mass)
 
     output:
-    tuple val(tile), val(state), file('mass_grand_total_t_10m2_nodata_remove.tif')
+    tuple val(tile), val(state), val(material), file('mass_grand_total_t_10m2_nodata_remove.tif')
 
     """
     cp $mass temp.tif
@@ -77,10 +88,10 @@ process mass_grand_total_t_10m2_nodata_remove {
 process mass_grand_total_kt_100m2 {
 
     input:
-    tuple val(tile), val(state), file(mass)
+    tuple val(tile), val(state), val(material), file(mass)
 
     output:
-    tuple val(tile), val(state), file('mass_grand_total_kt_100m2.tif')
+    tuple val(tile), val(state), val(material), file('mass_grand_total_kt_100m2.tif')
 
     publishDir "$params.dir.pub/$state/$tile", mode: 'copy'
 
@@ -103,10 +114,10 @@ process mass_grand_total_kt_100m2 {
 process mass_grand_total_Mt_1km2 {
 
     input:
-    tuple val(tile), val(state), file(mass)
+    tuple val(tile), val(state), val(material), file(mass)
 
     output:
-    tuple val(tile), val(state), file('mass_grand_total_Mt_1km2.tif')
+    tuple val(tile), val(state), val(material), file('mass_grand_total_Mt_1km2.tif')
 
     publishDir "$params.dir.pub/$state/$tile", mode: 'copy'
 
@@ -129,10 +140,10 @@ process mass_grand_total_Mt_1km2 {
 process mass_grand_total_Gt_10km2 {
 
     input:
-    tuple val(tile), val(state), file(mass)
+    tuple val(tile), val(state), val(material), file(mass)
 
     output:
-    tuple val(tile), val(state), file('mass_grand_total_Gt_10km2.tif')
+    tuple val(tile), val(state), val(material), file('mass_grand_total_Gt_10km2.tif')
 
     publishDir "$params.dir.pub/$state/$tile", mode: 'copy'
 

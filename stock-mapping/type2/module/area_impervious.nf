@@ -2,6 +2,8 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
+
 
 workflow area_impervious {
 
@@ -15,6 +17,13 @@ workflow area_impervious {
            [area_all_impervious.out, 
             area_building,
             area_aboveground_infrastructure], [0,1]))
+
+    all_published = 
+        area_remaining_impervious.out
+        .map{
+            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/other" ] }
+
+    pyramid(all_published)
 
     emit:
     remaining = area_remaining_impervious.out

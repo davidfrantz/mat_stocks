@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { multijoin } from './defs.nf'
+include { pyramid }   from './pyramid.nf'
 
 include { mass          as mass_lightweight }           from './mass.nf'
 include { mass_climate5 as mass_singlefamily }          from './mass.nf'
@@ -42,6 +43,20 @@ workflow mass_building {
         .filter{ it[2].equals('total')}
     )
 
+    all_published = 
+        mass_building_total.out
+        .mix(   mass_lightweight.out,
+                mass_singlefamily.out,
+                mass_multifamily.out,
+                mass_commercial_industrial.out,
+                mass_commercial_innercity.out,
+                mass_highrise.out,
+                mass_skyscraper.out)
+        .map{
+            [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] + "/mass/" + it[2] ] }
+
+    pyramid(all_published)
+
     emit:
     total = mass_building_total.out
 
@@ -59,7 +74,7 @@ process mass_building_total {
         file(highrise), file(skyscraper)
 
     output:
-    tuple val(tile), val(state), file('mass_building_total.tif')
+    tuple val(tile), val(state), val(material), file('mass_building_total.tif')
 
     publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
 
