@@ -3,6 +3,7 @@
 
 include { multijoin } from './defs.nf'
 include { pyramid }   from './pyramid.nf'
+include { sum }       from './sum.nf'
 
 workflow mass_grand_total {
 
@@ -33,6 +34,7 @@ workflow mass_grand_total {
             [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] ] }
 
     pyramid(all_published)
+    sum(all_published)
 
 }
 

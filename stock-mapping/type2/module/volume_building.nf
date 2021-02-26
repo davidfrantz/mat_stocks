@@ -3,6 +3,7 @@
 
 include { multijoin } from './defs.nf'
 include { pyramid }   from './pyramid.nf'
+include { sum }       from './sum.nf'
 
 include { volume as volume_building_lightweight           } from './volume.nf'
 include { volume as volume_building_singlefamily          } from './volume.nf'
@@ -53,6 +54,7 @@ workflow volume_building {
             [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/volume/building" ] }
 
     pyramid(all_published)
+    sum(all_published)
 
     emit:
     lightweight           = volume_building_lightweight.out

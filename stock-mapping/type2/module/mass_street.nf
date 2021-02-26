@@ -3,6 +3,7 @@
 
 include { multijoin } from './defs.nf'
 include { pyramid }   from './pyramid.nf'
+include { sum }       from './sum.nf'
 
 include { mass          as mass_motorway }          from './mass.nf'
 include { mass          as mass_primary }           from './mass.nf'
@@ -72,6 +73,7 @@ workflow mass_street {
             [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] + "/mass/" + it[2] ] }
 
     pyramid(all_published)
+    sum(all_published)
 
     emit:
     total = mass_street_total.out

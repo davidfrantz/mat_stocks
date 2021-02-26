@@ -3,6 +3,8 @@
 
 include { multijoin } from './defs.nf'
 include { pyramid }   from './pyramid.nf'
+include { sum }       from './sum.nf'
+
 
 workflow area_building {
 
@@ -32,6 +34,7 @@ workflow area_building {
             [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
 
     pyramid(all_published)
+    sum(all_published)
 
     emit:
     lightweight           = area_building_lightweight.out

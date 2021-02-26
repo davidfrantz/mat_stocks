@@ -2,6 +2,7 @@
 -----------------------------------------------------------------------**/
 
 include { pyramid } from './pyramid.nf'
+include { sum }       from './sum.nf'
 
 
 workflow area_street {
@@ -40,6 +41,7 @@ workflow area_street {
             [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/street" ] }
 
     pyramid(all_published)
+    sum(all_published)
 
     emit:
     motorway          = area_street_motorway.out

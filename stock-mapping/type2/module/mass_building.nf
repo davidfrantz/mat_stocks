@@ -3,6 +3,7 @@
 
 include { multijoin } from './defs.nf'
 include { pyramid }   from './pyramid.nf'
+include { sum }       from './sum.nf'
 
 include { mass          as mass_lightweight }           from './mass.nf'
 include { mass_climate5 as mass_singlefamily }          from './mass.nf'
@@ -56,6 +57,7 @@ workflow mass_building {
             [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] + "/mass/" + it[2] ] }
 
     pyramid(all_published)
+    sum(all_published)
 
     emit:
     total = mass_building_total.out

@@ -3,6 +3,7 @@
 
 include { multijoin } from './defs.nf'
 include { pyramid }   from './pyramid.nf'
+include { sum }       from './sum.nf'
 
 
 workflow area_impervious {
@@ -24,6 +25,7 @@ workflow area_impervious {
             [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/other" ] }
 
     pyramid(all_published)
+    sum(all_published)
 
     emit:
     remaining = area_remaining_impervious.out
