@@ -1,8 +1,8 @@
 /** area for street types
 -----------------------------------------------------------------------**/
 
-include { pyramid } from './pyramid.nf'
-include { sum }       from './sum.nf'
+include { pyramid }             from './pyramid.nf'
+include { image_sum; text_sum } from './sum.nf'
 
 
 workflow area_street {
@@ -38,10 +38,19 @@ workflow area_street {
                 area_street_bridge_other.out,
                 area_street_tunnel.out)
         .map{
-            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/street" ] }
+            [ it[0], it[1], "NA", it[2], 
+              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/street" ] }
 
-    pyramid(all_published)
-    sum(all_published)
+    pyramid(all_published
+            .map{ [ it[3], it[4] ] })
+
+    image_sum(all_published)
+
+    image_sum.out
+    .map{ [ it[1], it[3].name, it[3],
+            "$params.dir.pub/" + it[1] + "/mosaic/area/street" ] }
+    .groupTuple(by: [0,1,3]) \
+    | text_sum
 
     emit:
     motorway          = area_street_motorway.out

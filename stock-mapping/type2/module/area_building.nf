@@ -1,9 +1,9 @@
 /** building area per building type
 -----------------------------------------------------------------------**/
 
-include { multijoin } from './defs.nf'
-include { pyramid }   from './pyramid.nf'
-include { sum }       from './sum.nf'
+include { multijoin }           from './defs.nf'
+include { pyramid }             from './pyramid.nf'
+include { image_sum; text_sum } from './sum.nf'
 
 
 workflow area_building {
@@ -31,10 +31,19 @@ workflow area_building {
                 area_building_highrise.out,
                 area_building_skyscraper.out)
         .map{
-            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
+            [ it[0], it[1], "NA", it[2], 
+              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
 
-    pyramid(all_published)
-    sum(all_published)
+    pyramid(all_published
+            .map{ [ it[3], it[4] ] })
+
+    image_sum(all_published)
+
+    image_sum.out
+    .map{ [ it[1], it[3].name, it[3],
+            "$params.dir.pub/" + it[1] + "/mosaic/area/building" ] }
+    .groupTuple(by: [0,1,3]) \
+    | text_sum
 
     emit:
     lightweight           = area_building_lightweight.out

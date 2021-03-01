@@ -1,9 +1,9 @@
 /** building volume per building type
 -----------------------------------------------------------------------**/
 
-include { multijoin } from './defs.nf'
-include { pyramid }   from './pyramid.nf'
-include { sum }       from './sum.nf'
+include { multijoin }           from './defs.nf'
+include { pyramid }             from './pyramid.nf'
+include { image_sum; text_sum } from './sum.nf'
 
 include { volume as volume_building_lightweight           } from './volume.nf'
 include { volume as volume_building_singlefamily          } from './volume.nf'
@@ -51,10 +51,19 @@ workflow volume_building {
                 volume_building_highrise.out,
                 volume_building_skyscraper.out)
         .map{
-            [ it[2], "$params.dir.pub/" + it[1] + "/" + it[0] + "/volume/building" ] }
+            [ it[0], it[1], "NA", it[2], 
+              "$params.dir.pub/" + it[1] + "/" + it[0] + "/volume/building" ] }
 
-    pyramid(all_published)
-    sum(all_published)
+    pyramid(all_published
+            .map{ [ it[3], it[4] ] })
+
+    image_sum(all_published)
+
+    image_sum.out
+    .map{ [ it[1], it[3].name, it[3],
+            "$params.dir.pub/" + it[1] + "/mosaic/volume/building" ] }
+    .groupTuple(by: [0,1,3]) \
+    | text_sum
 
     emit:
     lightweight           = volume_building_lightweight.out

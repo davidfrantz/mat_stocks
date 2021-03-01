@@ -1,9 +1,10 @@
 /** total stock
 -----------------------------------------------------------------------**/
 
-include { multijoin } from './defs.nf'
-include { pyramid }   from './pyramid.nf'
-include { sum }       from './sum.nf'
+include { multijoin }           from './defs.nf'
+include { pyramid }             from './pyramid.nf'
+include { image_sum; text_sum } from './sum.nf'
+
 
 workflow mass_grand_total {
 
@@ -31,10 +32,19 @@ workflow mass_grand_total {
                 mass_grand_total_Mt_1km2.out,
                 mass_grand_total_Gt_10km2.out)
         .map{
-            [ it[3], "$params.dir.pub/" + it[1] + "/" + it[0] ] }
+            [ it[0], it[1], it[2], it[3], 
+              "$params.dir.pub/" + it[1] + "/" + it[0] ] }
 
-    pyramid(all_published)
-    sum(all_published)
+    pyramid(all_published
+            .map{ [ it[3], it[4] ] })
+
+    image_sum(all_published)
+
+    image_sum.out
+    .map{ [ it[1], it[3].name, it[3],
+            "$params.dir.pub/" + it[1] + "/mosaic" ] }
+    .groupTuple(by: [0,1,3]) \
+    | text_sum
 
 }
 
