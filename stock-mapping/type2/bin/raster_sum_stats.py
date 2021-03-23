@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
 import os
 import sys
@@ -17,5 +17,4 @@ for i in range(2,len(sys.argv)):
   
 frame = pd.concat(sums, axis=0, ignore_index = True)
 groupedDF = frame.groupby(0).sum()  
-exit()
 groupedDF.to_csv(outPath, sep=";", header=False)

@@ -5,5 +5,7 @@
 - run like this: 
 
 ```
-nextflow -Dnxf.pool.type=sync run -resume /home/frantzda/mat_stocks/stock-mapping/nextflow_dsl_2/stock-mapping_usa.nf -w /data/Alderaan/stock -with-dag flowchart.html -with-report report.html -with-timeline timeline.html
+export _JAVA_OPTIONS="-XX:ParallelGCThreads=2"
+cd /data/Jakku/mat_stocks/stock/USA
+nextflow -Dnxf.pool.type=sync run -resume /home/frantzda/mat_stocks/stock-mapping/type2/stock-mapping_usa.nf -w /data/Alderaan/stock -with-dag /data/Jakku/mat_stocks/stock/USA/flowchart.html -with-report /data/Jakku/mat_stocks/stock/USA/report.html -with-timeline /data/Jakku/mat_stocks/stock/USA/timeline.html
 ```

@@ -19,6 +19,7 @@ params.dir_project = "/data/Jakku/mat_stocks"
 params.dir = [
     "tiles":      params.dir_project + "/tiles/"    + params.country,
     "mask":       params.dir_project + "/mask/"     + params.country,
+    "zone":       params.dir_project + "/zone/"    + params.country,
     "osm":        params.dir_project + "/osm/"      + params.country,
     "type":       params.dir_project + "/type/"     + params.country,
     "impervious": params.dir_project + "/fraction/" + params.country,
@@ -32,6 +33,7 @@ params.dir = [
 // raster collections
 params.raster = [
     "mask":             [params.dir.mask,       "5km.tif"],
+    "zone":             [params.dir.zone,       "county-5km.tif"],
     "street":           [params.dir.osm,        "streets.tif"],
     "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
     "rail":             [params.dir.osm,        "railway.tif"],
@@ -119,6 +121,7 @@ include { mass_rail }                       from './module/mass_rail.nf'
 include { mass_other }                      from './module/mass_other.nf'
 include { mass_building }                   from './module/mass_building.nf'
 include { mass_grand_total }                from './module/mass_grand_total.nf'
+include { zonal_stats }                     from './module/zonal_stats.nf'
 
 
 
@@ -357,6 +360,17 @@ workflow {
         mass_other.out.total,
         mass_building.out.total
     )
+
+
+    // zonal statistics
+    zonal_stats(
+        mass_street.out.total,
+        mass_rail.out.total,
+        mass_other.out.total,
+        mass_building.out.total,
+        collection.out.zone
+    )
+    
 
 }
 

@@ -15,6 +15,7 @@ include { mask_collection_int16 as mask_height           } from './mask_collecti
 include { mask_collection_int16 as mask_type             } from './mask_collection.nf'
 include { mask_collection_byte  as mask_street_climate   } from './mask_collection.nf'
 include { mask_collection_byte  as mask_building_climate } from './mask_collection.nf'
+include { mask_collection_int16 as mask_zone             } from './mask_collection.nf'
 
 
 
@@ -39,6 +40,7 @@ workflow collection {
     /** ingest all rasters into tupled channels [tile, state, file]
     -----------------------------------------------------------------------**/
     mask             = import_collection_per_state(proc_unit,    params.raster.mask)
+    zone             = import_collection_full_country(proc_unit, params.raster.zone)
     street           = import_collection_full_country(proc_unit, params.raster.street)
     street_brdtun    = import_collection_full_country(proc_unit, params.raster.street_brdtun)
     rail             = import_collection_full_country(proc_unit, params.raster.rail)
@@ -59,6 +61,7 @@ workflow collection {
 
     // mask the rasters
     mask_street(multijoin([mask, street], [0,1]))
+    mask_zone(multijoin([mask, zone], [0,1]))
     mask_street_brdtun(multijoin([mask, street_brdtun], [0,1]))
     mask_rail(multijoin([mask, rail], [0,1]))
     mask_rail_brdtun(multijoin([mask, rail_brdtun], [0,1]))
@@ -74,6 +77,7 @@ workflow collection {
     mask_building_climate(multijoin([mask, building_climate], [0,1]))
 
     emit:
+    zone             = mask_zone.out
     street           = mask_street.out
     street_brdtun    = mask_street_brdtun.out
     rail             = mask_rail.out
