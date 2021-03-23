@@ -31,4 +31,4 @@ for uid in uids:
 all = [uids, sums]
 
 ## write array to text file
-np.savetxt(outPath, np.transpose(all), delimiter=";", fmt='%1.2f')
+np.savetxt(outPath, np.transpose(all), delimiter=";", fmt='%i')
