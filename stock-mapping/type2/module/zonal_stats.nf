@@ -36,9 +36,17 @@ workflow zonal_stats {
             [street.mix(rail, other, building), 
              zone], [0,1]))
 
-    zonal.out
-    .map{ [ it[1], it[2], it[3], it[4].name, it[4],
-            "$params.dir.pub/" + it[1] + "/mosaic/zonal" ] }
+    zone_per_state = 
+        zonal.out
+        .map{ [ it[1], it[2], it[3], it[4].name, it[4],
+                "$params.dir.pub/" + it[1] + "/mosaic/zonal" ] }
+
+    zone_all = 
+        zonal.out
+        .map{ [ "ALL", it[2], it[3], it[4].name, it[4],
+                "$params.dir.pub/" + "/ALL/zonal" ] }
+
+    zone_per_state.mix(zone_all)
     .groupTuple(by: [0,1,2,3,5]) \
     | zonal_merge
 
