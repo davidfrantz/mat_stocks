@@ -16,6 +16,8 @@ include { mask_collection_int16 as mask_type             } from './mask_collecti
 include { mask_collection_byte  as mask_street_climate   } from './mask_collection.nf'
 include { mask_collection_byte  as mask_building_climate } from './mask_collection.nf'
 include { mask_collection_int16 as mask_zone             } from './mask_collection.nf'
+include { mask_collection_int16 as mask_areacorr         } from './mask_collection.nf'
+include { area_correction                                } from './area_correction.nf'
 
 
 
@@ -55,6 +57,8 @@ workflow collection {
     type             = import_collection_per_state(proc_unit,    params.raster.type)
     street_climate   = import_collection_full_country(proc_unit, params.raster.street_climate)
     building_climate = import_collection_full_country(proc_unit, params.raster.building_climate)
+    areacorr         = import_collection_full_country(proc_unit, params.raster.areacorr)
+
 
     // import the masks
     mask = mask | import_mask
@@ -75,19 +79,66 @@ workflow collection {
     mask_type(multijoin([mask, type], [0,1]))
     mask_street_climate(multijoin([mask, street_climate], [0,1]))
     mask_building_climate(multijoin([mask, building_climate], [0,1]))
+    mask_areacorr(multijoin([mask, areacorr], [0,1]))
+
+    area =  mask_street.out
+                .combine(Channel.from("street"))
+                .mix(
+            mask_street_brdtun.out
+                .combine(Channel.from("street_brdtun")),
+            mask_rail.out
+                .combine(Channel.from("rail")),
+            mask_rail_brdtun.out
+                .combine(Channel.from("rail_brdtun")),
+            mask_apron.out
+                .combine(Channel.from("apron")),
+            mask_taxi.out
+                .combine(Channel.from("taxi")),
+            mask_runway.out
+                .combine(Channel.from("runway")),
+            mask_parking.out
+                .combine(Channel.from("parking")),
+            mask_impervious.out
+                .combine(Channel.from("impervious")),
+            mask_footprint.out
+                .combine(Channel.from("footprint"))
+            )
+
+    area_correction(multijoin([area, mask_areacorr.out], [0,1]))
+
 
     emit:
     zone             = mask_zone.out
-    street           = mask_street.out
-    street_brdtun    = mask_street_brdtun.out
-    rail             = mask_rail.out
-    rail_brdtun      = mask_rail_brdtun.out
-    apron            = mask_apron.out
-    taxi             = mask_taxi.out
-    runway           = mask_runway.out
-    parking          = mask_parking.out
-    impervious       = mask_impervious.out
-    footprint        = mask_footprint.out
+    street           = area_correction.out
+                        .filter{ it[3].equals('street')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    street_brdtun    = area_correction.out
+                        .filter{ it[3].equals('street_brdtun')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    rail             = area_correction.out
+                        .filter{ it[3].equals('rail')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    rail_brdtun      = area_correction.out
+                        .filter{ it[3].equals('rail_brdtun')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    apron            = area_correction.out
+                        .filter{ it[3].equals('apron')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    taxi             = area_correction.out
+                        .filter{ it[3].equals('taxi')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    runway           = area_correction.out
+                        .filter{ it[3].equals('runway')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    parking          = area_correction.out
+                        .filter{ it[3].equals('parking')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    impervious       = area_correction.out
+                        .filter{ it[3].equals('impervious')}
+                        .map{ [ it[0], it[1], it[2] ] }
+    footprint        = area_correction.out
+                        .filter{ it[3].equals('footprint')}
+                        .map{ [ it[0], it[1], it[2] ] }
     height           = mask_height.out
     type             = mask_type.out
     street_climate   = mask_street_climate.out

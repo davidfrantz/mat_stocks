@@ -19,7 +19,7 @@ params.dir_project = "/data/Jakku/mat_stocks"
 params.dir = [
     "tiles":      params.dir_project + "/tiles/"    + params.country,
     "mask":       params.dir_project + "/mask/"     + params.country,
-    "zone":       params.dir_project + "/zone/"    + params.country,
+    "zone":       params.dir_project + "/zone/"     + params.country,
     "osm":        params.dir_project + "/osm/"      + params.country,
     "type":       params.dir_project + "/type/"     + params.country,
     "impervious": params.dir_project + "/fraction/" + params.country,
@@ -27,7 +27,8 @@ params.dir = [
     "height":     params.dir_project + "/height/"   + params.country,
     "climate":    params.dir_project + "/climate/"  + params.country,
     "pub":        params.dir_project + "/stock/"    + params.country,
-    "mi":         params.dir_project + "/mi/"       + params.country
+    "mi":         params.dir_project + "/mi/"       + params.country,
+    "areacorr":   params.dir_project + "/areacorr/" + params.country
 ]
 
 // raster collections
@@ -47,7 +48,8 @@ params.raster = [
     "height":           [params.dir.height,     "BUILDING-HEIGHT_HL_ML_MLP.tif"],
     "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
     "street_climate":   [params.dir.climate,    "road_climate.tif"],
-    "building_climate": [params.dir.climate,    "building_climate.tif"]
+    "building_climate": [params.dir.climate,    "building_climate.tif"],
+    "areacorr":         [params.dir.areacorr,   "true_area.tif"]
 ]
 
 // MI files
