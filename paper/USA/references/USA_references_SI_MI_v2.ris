@@ -917,12 +917,12 @@ Y2  - 2021/03/23/
 ER  - 
 
 TY  - ELEC
-TI  - Key:highway
-AU  - OpenStreetMap
-T2  - OpenStreetMap
+TI  - Chapter 22.112: Parking
+AU  - County of Los Angeles
+T2  - Code of Ordinances
 DA  - 2021///
 PY  - 2021
-UR  - https://wiki.openstreetmap.org/wiki/Key:highway
+UR  - https://library.municode.com/ca/los_angeles_county/codes/code_of_ordinances?nodeId=TIT22PLZO_DIV6DEST_CH22.112PA
 Y2  - 2021/03/02/
 ER  - 
 
@@ -976,5 +976,57 @@ DO  - https://doi.org/10.3390/su12031057
 VL  - 12
 IS  - 3
 SP  - 1057
+ER  - 
+
+TY  - RPRT
+TI  - A guideline for the design and construction of asphalt parking lots in Colorado
+AU  - CAPA
+CY  - Colorado
+DA  - 2016/02/12/
+PY  - 2016
+SP  - 16
+PB  - Colorado Asphalt Pavement Association
+ER  - 
+
+TY  - RPRT
+TI  - Part 4: Asphalt pavement design guide for the City of Miioula Missoula Parks and Recreation
+AU  - City of Missoula
+DA  - 2017///
+PY  - 2017
+ER  - 
+
+TY  - ELEC
+TI  - Key:highway
+AU  - OpenStreetMap
+T2  - OpenStreetMap
+DA  - 2021///
+PY  - 2021
+UR  - https://wiki.openstreetmap.org/wiki/Key:highway
+Y2  - 2021/03/02/
+ER  - 
+
+TY  - RPRT
+TI  - Asphalt Paving Design Guide
+AU  - MAPA
+CY  - Minnesota
+DA  - 2014///
+PY  - 2014
+SP  - 75
+PB  - Minnesota Asphalt Pavement Association
+ER  - 
+
+TY  - JOUR
+TI  - Life Cycle Analysis for Sustainable Development: A Case Study of Parking Lot Pavements
+AU  - Glick, Scott
+AU  - Shuler, Scott
+AU  - Guggemos, Angela Acree
+T2  - International Journal of Construction Education and Research
+DA  - 2013///
+PY  - 2013
+DO  - 10.1080/15578771.2012.714443
+VL  - 9
+IS  - 3
+SP  - 226
+EP  - 236
 ER  - 
 
