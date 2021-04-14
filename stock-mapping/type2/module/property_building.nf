@@ -26,6 +26,8 @@ workflow property_building {
 // scale to m
 process height_building {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(height)
 
@@ -47,6 +49,7 @@ process height_building {
 // remove buildings < 2m
 process area_building {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -71,6 +74,7 @@ process area_building {
 // add building classes based on height thresholds
 process type_building {
 
+    label 'gdal'
     label 'mem_2'
 
     input:

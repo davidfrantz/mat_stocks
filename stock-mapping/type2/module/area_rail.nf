@@ -1,15 +1,14 @@
 /** area for rail types
 -----------------------------------------------------------------------**/
 
-include { multijoin }           from './defs.nf'
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
+include { multijoin }                          from './defs.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow area_rail {
 
     take:
-    rail; rail_brdtun
+    rail; rail_brdtun; zone
 
     main:
     area_rail_railway(rail)
@@ -33,19 +32,10 @@ workflow area_rail {
                 area_rail_bridge.out,
                 area_rail_tunnel.out)
         .map{
-            [ it[0], it[1], "NA", it[2], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/rail" ] }
+            [ it[0], it[1], "rail", "area", "", it[2].name, it[2] ] }
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    finalize(all_published, zone)
 
-    image_sum(all_published)
-
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/area/rail" ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
 
     emit:
     railway         = area_rail_railway.out
@@ -91,6 +81,7 @@ workflow area_rail {
 // area [m²] of regular rails
 process area_rail_railway {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -116,6 +107,8 @@ process area_rail_railway {
 // area [m²] of trams
 process area_rail_tram {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(rail)
 
@@ -138,6 +131,7 @@ process area_rail_tram {
 // area [m²] of other rail types
 process area_rail_other {
 
+    label 'gdal'
     label 'mem_6'
 
     input:
@@ -169,6 +163,7 @@ process area_rail_other {
 // - but should not be assigned with a mass
 process area_rail_exclude {
 
+    label 'gdal'
     label 'mem_3'
 
     input:
@@ -195,6 +190,8 @@ process area_rail_exclude {
 // area [m²] of underground subways (with tube)
 process area_rail_subway {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(rail)
 
@@ -216,6 +213,8 @@ process area_rail_subway {
 
 // area [m²] of aboveground subway rails on pillars
 process area_rail_subway_elevated {
+
+    label 'gdal'
 
     input:
     tuple val(tile), val(state), file(rail)
@@ -239,6 +238,8 @@ process area_rail_subway_elevated {
 // area [m²] of aboveground subway rails
 process area_rail_subway_surface {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(rail)
 
@@ -260,6 +261,8 @@ process area_rail_subway_surface {
 
 // area [m²] of rail bridges (excluding the road)
 process area_rail_bridge {
+
+    label 'gdal'
 
     input:
     tuple val(tile), val(state), file(rail)
@@ -283,6 +286,8 @@ process area_rail_bridge {
 // area [m²] of rail tunnels (excluding the road)
 process area_rail_tunnel {
 
+    label 'gdal'
+    
     input:
     tuple val(tile), val(state), file(tunnel), file(subway)
 

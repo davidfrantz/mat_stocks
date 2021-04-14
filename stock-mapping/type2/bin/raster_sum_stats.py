@@ -13,7 +13,7 @@ outPath = str(sys.argv[1]).split(" ")[0]
 
 sums = []
 for i in range(2,len(sys.argv)):
-    df = pd.read_csv(sys.argv[i], header = None, sep=";")
+    df = pd.read_csv(sys.argv[i], sep=";")
     sums.append(df)
   
 frame = pd.concat(sums, axis=0, ignore_index = True)

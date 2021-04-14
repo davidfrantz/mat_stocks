@@ -76,6 +76,7 @@ workflow area_aboveground_infrastructure {
 // bridges come on top
 process area_ag_street_infrastructure {
 
+    label 'gdal'
     label 'mem_12'
 
     input:
@@ -116,6 +117,7 @@ process area_ag_street_infrastructure {
 // bridges come on top
 process area_ag_rail_infrastructure {
 
+    label 'gdal'
     label 'mem_8'
 
     input:
@@ -150,6 +152,7 @@ process area_ag_rail_infrastructure {
 // other = airport and parking
 process area_ag_other_infrastructure {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -173,6 +176,7 @@ process area_ag_other_infrastructure {
 // area [m²] of all aboveground infrastructure
 process area_ag_total_infrastructure {
 
+    label 'gdal'
     label 'mem_3'
 
     input:

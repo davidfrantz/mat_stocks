@@ -2,7 +2,9 @@
 
 import sys
 import gdal
+import pandas as pd
 import numpy as np
+import csv
 
 #print('Number of arguments:', len(sys.argv), 'arguments.')
 #print('Argument List:', str(sys.argv))
@@ -30,5 +32,8 @@ for uid in uids:
 
 all = [uids, sums]
 
+DF = pd.DataFrame(np.transpose(all), columns = ['zone','sum'])
+DF.to_csv(outPath, sep=";", header=True, index=False, quoting = csv.QUOTE_NONE)
+
 ## write array to text file
-np.savetxt(outPath, np.transpose(all), delimiter=";", fmt=['%i', '%1.6f'])
+#np.savetxt(outPath, np.transpose(all), delimiter=";", header='zone;sum', fmt=['%i', '%1.6f'])

@@ -2,6 +2,8 @@
 
 process pyramid {
 
+    label 'gdal'
+    
     input:
     tuple file(input), val(pubdir)
 

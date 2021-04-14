@@ -1,15 +1,14 @@
 /** area of other impervious surfaces
 -----------------------------------------------------------------------**/
 
-include { multijoin }           from './defs.nf'
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
+include { multijoin }                          from './defs.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow area_other {
 
     take:
-    apron; taxi; runway; parking
+    apron; taxi; runway; parking; zone
 
     main: 
     area_airport(multijoin([runway, taxi, apron], [0,1]))
@@ -17,21 +16,12 @@ workflow area_other {
 
     all_published = 
         area_airport.out
-        .mix(   area_parking.out)
+        .mix(area_parking.out)
         .map{
-            [ it[0], it[1], "NA", it[2], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/other" ] }
+            [ it[0], it[1], "other", "area", "", it[2].name, it[2] ] }
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    finalize(all_published, zone)
 
-    image_sum(all_published)
-
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/area/other" ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
 
     emit:
     airport = area_airport.out
@@ -43,6 +33,7 @@ workflow area_other {
 // area [m²] of airport roads/aprons (aprons, taxiways and runways)
 process area_airport{
 
+    label 'gdal'
     label 'mem_3'
 
     input:
@@ -69,6 +60,7 @@ process area_airport{
 // area [m²] of parking lots (as mapped in OSM)
 process area_parking {
 
+    label 'gdal'
     input:
     tuple val(tile), val(state), file(parking)
 

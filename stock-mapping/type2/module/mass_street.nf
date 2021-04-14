@@ -1,21 +1,9 @@
 /** street stock
 -----------------------------------------------------------------------**/
 
-include { multijoin }           from './defs.nf'
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
-
-include { mass          as mass_motorway }          from './mass.nf'
-include { mass          as mass_primary }           from './mass.nf'
-include { mass          as mass_secondary }         from './mass.nf'
-include { mass          as mass_tertiary }          from './mass.nf'
-include { mass_climate6 as mass_local }             from './mass.nf'
-include { mass_climate6 as mass_track }             from './mass.nf'
-include { mass          as mass_motorway_elevated } from './mass.nf'
-include { mass          as mass_other_elevated }    from './mass.nf'
-include { mass          as mass_bridge_motorway }   from './mass.nf'
-include { mass          as mass_bridge_other }      from './mass.nf'
-include { mass          as mass_tunnel }            from './mass.nf'
+include { multijoin; remove }                  from './defs.nf'
+include { mass; mass_climate6 }                from './mass.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow mass_street {
@@ -23,66 +11,125 @@ workflow mass_street {
     take:
     motorway; primary; secondary; tertiary;
     local; track; motorway_elevated; other_elevated
-    bridge_motorway; bridge_other; tunnel
+    bridge_motorway; bridge_other; tunnel;
+    climate; zone; mi
 
 
     main:
-    mass_motorway(motorway)
-    mass_primary(primary)
-    mass_secondary(secondary)
-    mass_tertiary(tertiary)
-    mass_local(local)
-    mass_track(track)
-    mass_motorway_elevated(motorway_elevated)
-    mass_other_elevated(other_elevated)
-    mass_bridge_motorway(bridge_motorway)
-    mass_bridge_other(bridge_other)
-    mass_tunnel(tunnel)
 
-    mass_street_total(
-        multijoin(
-           [mass_motorway.out,
-            mass_primary.out,
-            mass_secondary.out,
-            mass_tertiary.out,
-            mass_local.out,
-            mass_track.out,
-            mass_motorway_elevated.out,
-            mass_other_elevated.out,
-            mass_bridge_motorway.out,
-            mass_bridge_other.out,
-            mass_tunnel.out], [0,1,2]
-        )
-        .filter{ it[2].equals('total')}
-    )
+    // tile, state, file, type, material, mi
+    motorway = motorway
+    .combine( Channel.from("motorway") )
+    .combine( mi.map{ tab -> [tab.material, tab.motorway]} )
 
-    all_published = 
-        mass_street_total.out
-        .mix(   mass_motorway.out,
-                mass_primary.out,
-                mass_secondary.out,
-                mass_tertiary.out,
-                mass_local.out,
-                mass_track.out,
-                mass_motorway_elevated.out,
-                mass_other_elevated.out,
-                mass_bridge_motorway.out,
-                mass_bridge_other.out,
-                mass_tunnel.out)
-        .map{
-            [ it[0], it[1], it[2], it[3], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/mass/" + it[2] ] }
+    // tile, state, file, type, material, mi
+    primary = primary
+    .combine( Channel.from("primary") )
+    .combine( mi.map{ tab -> [tab.material, tab.primary]} )
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    // tile, state, file, type, material, mi
+    secondary = secondary
+    .combine( Channel.from("secondary") )
+    .combine( mi.map{ tab -> [tab.material, tab.secondary]} )
 
-    image_sum(all_published)
+    // tile, state, file, type, material, mi
+    tertiary = tertiary
+    .combine( Channel.from("tertiary") )
+    .combine( mi.map{ tab -> [tab.material, tab.tertiary]} )
 
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/mass/" + it[2] ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
+    // tile, state, file, type, material, mi
+    motorway_elevated = motorway_elevated
+    .combine( Channel.from("motorway_elevated") )
+    .combine( mi.map{ tab -> [tab.material, tab.motorway_elevated]} )
+
+    // tile, state, file, type, material, mi
+    other_elevated = other_elevated
+    .combine( Channel.from("other_elevated") )
+    .combine( mi.map{ tab -> [tab.material, tab.other_elevated]} )
+
+    // tile, state, file, type, material, mi
+    bridge_motorway = bridge_motorway
+    .combine( Channel.from("bridge_motorway") )
+    .combine( mi.map{ tab -> [tab.material, tab.bridge_motorway]} )
+
+    // tile, state, file, type, material, mi
+    bridge_other = bridge_other
+    .combine( Channel.from("bridge_other") )
+    .combine( mi.map{ tab -> [tab.material, tab.bridge_other]} )
+
+    // tile, state, file, type, material, mi
+    tunnel = tunnel
+    .combine( Channel.from("tunnel") )
+    .combine( mi.map{ tab -> [tab.material, tab.tunnel]} )
+
+
+    // tile, state, file, type, material, mi, pubdir -> mass
+    motorway
+    .mix(primary,
+         secondary,
+         tertiary,
+         motorway_elevated,
+         other_elevated,
+         bridge_motorway,
+         bridge_other,
+         tunnel)
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/street/" + it[4]) } \
+    | mass
+
+
+    // tile, state, file, type, material, 6 x mi
+    local = multijoin([local, climate], [0,1])
+    .combine( Channel.from("local") )
+    .combine( mi.map{ tab -> [tab.material, 
+              tab.local_climate1, tab.local_climate2, tab.local_climate3, 
+              tab.local_climate4, tab.local_climate5, tab.local_climate6]} )
+
+    // tile, state, file, type, material, 6 x mi
+    track = multijoin([track, climate], [0,1])
+    .combine( Channel.from("track") )
+    .combine( mi.map{ tab -> [tab.material, 
+              tab.track_climate1, tab.track_climate2, tab.track_climate3, 
+              tab.track_climate4, tab.track_climate5, tab.track_climate6]} )
+
+
+    // tile, state, file, type, material, 6 x mi, pubdir -> mass_climate6
+    local
+    .mix(track)
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/street/" + it[4]) } \
+    | mass_climate6
+
+
+    // tile, state, type, material, 11 x files, pubdir -> mass_building_total
+    multijoin([ 
+        mass.out.filter{ it[2].equals('motorway')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('primary')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('secondary')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('tertiary')}.map{ remove(it, 2) },
+        mass_climate6.out.filter{ it[2].equals('local')}.map{ remove(it, 2) },
+        mass_climate6.out.filter{ it[2].equals('track')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('motorway_elevated')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('other_elevated')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('bridge_motorway')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('bridge_other')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('tunnel')}.map{ remove(it, 2) }],
+        [0,1,2] )
+    .filter{ it[2].equals('total')} \
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/street/" + it[2]) } \
+    | mass_street_total
+
+
+    // tile, state, category, dimension, material, basename, filename -> 1st channel of finalize
+    all_published = mass_street_total.out
+    .mix(mass.out,
+         mass_climate6.out)
+    .map{
+        [ it[0], it[1], "street", "mass", it[3], it[4].name, it[4] ] }
+
+    finalize(all_published, zone)
+
 
     emit:
     total = mass_street_total.out
@@ -92,6 +139,7 @@ workflow mass_street {
 
 process mass_street_total {
 
+    label 'gdal'
     label 'mem_11'
 
     input:
@@ -99,12 +147,12 @@ process mass_street_total {
         file(motorway), file(primary), file(secondary), file(tertiary), 
         file(local), file(track), file(motorway_elevated), 
         file(other_elevated), file(bridge_motorway), 
-        file(bridge_other), file(tunnel)
+        file(bridge_other), file(tunnel), val(pubdir)
 
     output:
-    tuple val(tile), val(state), val(material), file('mass_street_total.tif')
+    tuple val(tile), val(state), val("total"), val(material), file('mass_street_total.tif')
 
-    publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
+    publishDir "$pubdir", mode: 'copy'
 
     """
     gdal_calc.py \

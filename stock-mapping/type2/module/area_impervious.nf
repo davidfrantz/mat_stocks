@@ -1,15 +1,14 @@
 /** all other impervious surfaces
 -----------------------------------------------------------------------**/
 
-include { multijoin }           from './defs.nf'
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
+include { multijoin }                          from './defs.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow area_impervious {
 
     take:
-    impervious; area_building; area_aboveground_infrastructure
+    impervious; area_building; area_aboveground_infrastructure; zone
 
     main:
     area_all_impervious(impervious)
@@ -22,19 +21,10 @@ workflow area_impervious {
     all_published = 
         area_remaining_impervious.out
         .map{
-            [ it[0], it[1], "NA", it[2], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/other" ] }
+            [ it[0], it[1], "other", "area", "", it[2].name, it[2] ] }
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    finalize(all_published, zone)
 
-    image_sum(all_published)
-
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/area/other" ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
 
     emit:
     remaining = area_remaining_impervious.out
@@ -44,6 +34,8 @@ workflow area_impervious {
 // area [m²] of all impervious surfaces
 // we clean this at the lower end (50%) to reduce commission and sliver artefacts
 process area_all_impervious {
+
+    label 'gdal'
 
     input:
     tuple val(tile), val(state), file(impervious)
@@ -64,6 +56,7 @@ process area_all_impervious {
 
 process area_remaining_impervious {
 
+    label 'gdal'
     label 'mem_3'
 
     input:

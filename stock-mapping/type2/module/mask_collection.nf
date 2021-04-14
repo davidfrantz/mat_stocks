@@ -2,6 +2,8 @@
 // rasterized federal states (binary [0/1])
 process import_mask {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(mask)
 
@@ -20,6 +22,8 @@ process import_mask {
 // make sure that bakckground value is 0 (not nodata)
 // assuming initial nodata value is 255
 process mask_collection_byte {
+
+    label 'gdal'
 
     input:
     tuple val(tile), val(state), file(mask), file(input)
@@ -47,6 +51,8 @@ process mask_collection_byte {
 // assuming initial nodata value is < 0
 process mask_collection_int16 {
 
+    label 'gdal'
+    
     input:
     tuple val(tile), val(state), file(mask), file(input)
 //    val(tag)

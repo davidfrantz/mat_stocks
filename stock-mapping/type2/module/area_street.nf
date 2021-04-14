@@ -1,14 +1,14 @@
 /** area for street types
 -----------------------------------------------------------------------**/
 
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
+include { multijoin }                          from './defs.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow area_street {
 
     take:
-    street; street_brdtun
+    street; street_brdtun; zone
 
     main:
     area_street_motorway(street)
@@ -24,6 +24,7 @@ workflow area_street {
     area_street_bridge_other(street_brdtun)
     area_street_tunnel(street_brdtun)
 
+    // tile, state, category, dimension, material, basename, filename -> 1st channel of finalize
     all_published = 
         area_street_motorway.out
         .mix(   area_street_primary.out,
@@ -38,19 +39,10 @@ workflow area_street {
                 area_street_bridge_other.out,
                 area_street_tunnel.out)
         .map{
-            [ it[0], it[1], "NA", it[2], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/street" ] }
+            [ it[0], it[1], "street", "area", "", it[2].name, it[2] ] }
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    finalize(all_published, zone)
 
-    image_sum(all_published)
-
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/area/street" ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
 
     emit:
     motorway          = area_street_motorway.out
@@ -120,6 +112,7 @@ workflow area_street {
 // area [m²] of motorways
 process area_street_motorway {
 
+    label 'gdal'
     label 'mem_3'
 
     input:
@@ -146,6 +139,7 @@ process area_street_motorway {
 // area [m²] of primary roads
 process area_street_primary {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -171,6 +165,7 @@ process area_street_primary {
 // area [m²] of secondary roads
 process area_street_secondary {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -196,6 +191,7 @@ process area_street_secondary {
 // area [m²] of tertiary roads
 process area_street_tertiary {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -221,6 +217,7 @@ process area_street_tertiary {
 // area [m²] of local road types
 process area_street_local {
 
+    label 'gdal'
     label 'mem_14'
 
     input:
@@ -258,6 +255,7 @@ process area_street_local {
 // area [m²] of track roads (unpaved)
 process area_street_track {
 
+    label 'gdal'
     label 'mem_6'
 
     input:
@@ -289,6 +287,7 @@ process area_street_track {
 // - but should not be assigned with a mass
 process area_street_exclude {
 
+    label 'gdal'
     label 'mem_3'
 
     input:
@@ -315,6 +314,7 @@ process area_street_exclude {
 // area [m²] of motorways on bridges (excluding the bridge)
 process area_street_motorway_elevated {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -340,6 +340,8 @@ process area_street_motorway_elevated {
 // area [m²] of other roads on bridges (excluding the bridge)
 process area_street_other_elevated {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(street)
 
@@ -361,6 +363,8 @@ process area_street_other_elevated {
 
 // area [m²] of motorway bridges (excluding the road)
 process area_street_bridge_motorway {
+
+    label 'gdal'
 
     input:
     tuple val(tile), val(state), file(brdtun)
@@ -384,6 +388,8 @@ process area_street_bridge_motorway {
 // area [m²] of other bridges (excluding the road)
 process area_street_bridge_other {
 
+    label 'gdal'
+
     input:
     tuple val(tile), val(state), file(brdtun)
 
@@ -406,6 +412,8 @@ process area_street_bridge_other {
 // area [m²] of road tunnels (excluding the road)
 process area_street_tunnel {
 
+    label 'gdal'
+    
     input:
     tuple val(tile), val(state), file(brdtun)
 

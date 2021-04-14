@@ -1,15 +1,14 @@
 /** building area per building type
 -----------------------------------------------------------------------**/
 
-include { multijoin }           from './defs.nf'
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
+include { multijoin }                          from './defs.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow area_building {
 
     take:
-    area; type
+    area; type; zone
 
     main:
     area_building_singlefamily(multijoin([area, type], [0,1]))
@@ -31,19 +30,10 @@ workflow area_building {
                 area_building_highrise.out,
                 area_building_skyscraper.out)
         .map{
-            [ it[0], it[1], "NA", it[2], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/area/building" ] }
+            [ it[0], it[1], "building", "area", "", it[2].name, it[2] ] }
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    finalize(all_published, zone)
 
-    image_sum(all_published)
-
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/area/building" ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
 
     emit:
     lightweight           = area_building_lightweight.out
@@ -60,6 +50,7 @@ workflow area_building {
 // building area of singlefamily (excl. garages)
 process area_building_singlefamily {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -86,6 +77,7 @@ process area_building_singlefamily {
 // building area of garages
 process area_building_garages {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -109,6 +101,7 @@ process area_building_garages {
 // building area of mobilehomes
 process area_building_mobilehomes {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -132,6 +125,7 @@ process area_building_mobilehomes {
 // building area of lightweight
 process area_building_lightweight {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -157,6 +151,7 @@ process area_building_lightweight {
 // building area of multifamily
 process area_building_multifamily {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -182,6 +177,7 @@ process area_building_multifamily {
 // building area of commercial/industrial
 process area_building_commercial_industrial {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -207,6 +203,7 @@ process area_building_commercial_industrial {
 // building area of commercial/innercity
 process area_building_commercial_innercity {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -232,6 +229,7 @@ process area_building_commercial_innercity {
 // building area of highrise buildings
 process area_building_highrise {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
@@ -257,6 +255,7 @@ process area_building_highrise {
 // building area of skyscrapers
 process area_building_skyscraper {
 
+    label 'gdal'
     label 'mem_2'
 
     input:

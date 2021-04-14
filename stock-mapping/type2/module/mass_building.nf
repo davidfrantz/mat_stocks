@@ -1,17 +1,9 @@
 /** building stock
 -----------------------------------------------------------------------**/
 
-include { multijoin }           from './defs.nf'
-include { pyramid }             from './pyramid.nf'
-include { image_sum; text_sum } from './sum.nf'
-
-include { mass          as mass_lightweight }           from './mass.nf'
-include { mass_climate5 as mass_singlefamily }          from './mass.nf'
-include { mass          as mass_multifamily }           from './mass.nf'
-include { mass          as mass_commercial_industrial } from './mass.nf'
-include { mass          as mass_commercial_innercity }  from './mass.nf'
-include { mass          as mass_highrise }              from './mass.nf'
-include { mass          as mass_skyscraper }            from './mass.nf'
+include { multijoin; remove }                          from './defs.nf'
+include { mass; mass_climate5 }                from './mass.nf'
+include { finalize }                           from './finalize.nf'
 
 
 workflow mass_building {
@@ -19,54 +11,91 @@ workflow mass_building {
     take:
     lightweight; singlefamily; multifamily; 
     commercial_industrial; commercial_innercity; 
-    highrise; skyscraper
+    highrise; skyscraper;
+    climate; zone; mi
 
 
     main:
-    mass_lightweight(lightweight)
-    mass_singlefamily(singlefamily)
-    mass_multifamily(multifamily)
-    mass_commercial_industrial(commercial_industrial)
-    mass_commercial_innercity(commercial_innercity)
-    mass_highrise(highrise)
-    mass_skyscraper(skyscraper)
 
-    mass_building_total(
-        multijoin(
-           [mass_lightweight.out,
-            mass_singlefamily.out,
-            mass_multifamily.out,
-            mass_commercial_industrial.out,
-            mass_commercial_innercity.out,
-            mass_highrise.out,
-            mass_skyscraper.out], [0,1,2]
-        )
-        .filter{ it[2].equals('total')}
-    )
+    // tile, state, file, type, material, mi
+    lightweight = lightweight
+    .combine( Channel.from("lightweight") )
+    .combine( mi.map{ tab -> [tab.material, tab.lightweight] } )
 
-    all_published = 
-        mass_building_total.out
-        .mix(   mass_lightweight.out,
-                mass_singlefamily.out,
-                mass_multifamily.out,
-                mass_commercial_industrial.out,
-                mass_commercial_innercity.out,
-                mass_highrise.out,
-                mass_skyscraper.out)
-        .map{
-            [ it[0], it[1], it[2], it[3], 
-              "$params.dir.pub/" + it[1] + "/" + it[0] + "/mass/" + it[2] ] }
+    // tile, state, file, type, material, mi
+    multifamily = multifamily
+    .combine( Channel.from("multifamily") )
+    .combine( mi.map{ tab -> [tab.material, tab.multifamily] } )
 
-    pyramid(all_published
-            .map{ [ it[3], it[4] ] })
+    // tile, state, file, type, material, mi
+    commercial_industrial = commercial_industrial
+    .combine( Channel.from("commercial_industrial") )
+    .combine( mi.map{ tab -> [tab.material, tab.commercial_industrial] } )
 
-    image_sum(all_published)
+    // tile, state, file, type, material, mi
+    commercial_innercity = commercial_innercity
+    .combine( Channel.from("commercial_innercity") )
+    .combine( mi.map{ tab -> [tab.material, tab.commercial_innercity] } )
 
-    image_sum.out
-    .map{ [ it[1], it[3].name, it[3],
-            "$params.dir.pub/" + it[1] + "/mosaic/mass/" + it[2] ] }
-    .groupTuple(by: [0,1,3]) \
-    | text_sum
+    // tile, state, file, type, material, mi
+    highrise = highrise
+    .combine( Channel.from("highrise") )
+    .combine( mi.map{ tab -> [tab.material, tab.highrise] } )
+
+    // tile, state, file, type, material, mi
+    skyscraper = skyscraper
+    .combine( Channel.from("skyscraper") )
+    .combine( mi.map{ tab -> [tab.material, tab.skyscraper] } )
+
+
+    // tile, state, file, type, material, mi, pubdir -> mass
+    lightweight
+    .mix(multifamily,
+         commercial_industrial,
+         commercial_innercity,
+         highrise,
+         skyscraper)
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/building/" + it[4]) } \
+    | mass
+
+
+    // tile, state, file, type, material, 5 x mi, pubdir -> mass_climate5
+    multijoin([singlefamily, climate], [0,1])
+    .combine( Channel.from("singlefamily") )
+    .combine( mi.map{ tab -> [tab.material, 
+              tab.singlefamily_climate1, tab.singlefamily_climate2, tab.singlefamily_climate3, 
+              tab.singlefamily_climate4, tab.singlefamily_climate5] } )
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/building/" + it[4]) } \
+    | mass_climate5
+
+
+    // tile, state, type, material, 7 x files, pubdir -> mass_building_total
+    multijoin([ 
+        mass.out.filter{ it[2].equals('lightweight')}.map{ remove(it, 2) },
+        mass_climate5.out.filter{ it[2].equals('singlefamily')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('multifamily')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('commercial_industrial')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('commercial_innercity')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('highrise')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('skyscraper')}.map{ remove(it, 2) }], 
+        [0,1,2] )
+    .filter{ it[2].equals('total')} \
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/building/" + it[2]) } \
+    | mass_building_total
+
+
+    // tile, state, category, dimension, material, basename, filename -> 1st channel of finalize
+    all_published = mass_building_total.out
+    .mix(mass.out,
+         mass_climate5.out)
+    .map{
+        [ it[0], it[1], "building", "mass", it[3], it[4].name, it[4] ] }
+
+    finalize(all_published, zone)
+
 
     emit:
     total = mass_building_total.out
@@ -76,18 +105,19 @@ workflow mass_building {
 
 process mass_building_total {
 
+    label 'gdal'
     label 'mem_7'
 
     input:
     tuple val(tile), val(state), val(material), 
         file(lightweight), file(singlefamily), file(multifamily), 
         file(commercial_industrial), file(commercial_innercity), 
-        file(highrise), file(skyscraper)
+        file(highrise), file(skyscraper), val(pubdir)
 
     output:
-    tuple val(tile), val(state), val(material), file('mass_building_total.tif')
+    tuple val(tile), val(state), val("total"), val(material), file('mass_building_total.tif')
 
-    publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
+    publishDir "$pubdir", mode: 'copy'
 
     """
     gdal_calc.py \

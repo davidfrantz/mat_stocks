@@ -1,6 +1,12 @@
 /**-----------------------------------------------------------------------
 --- DEFINITIONS ----------------------------------------------------------
 -----------------------------------------------------------------------**/
+ // djj
+def remove( list_it, index){
+  def new_list = list_it[0..-1]
+  new_list.remove(index)
+  return new_list
+}
 
 // extract basename of parent directory
 def extractDirectory(it) { 

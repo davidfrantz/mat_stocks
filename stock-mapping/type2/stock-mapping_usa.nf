@@ -17,7 +17,7 @@ params.dir_project = "/data/Jakku/mat_stocks"
 
 // directories
 params.dir = [
-    "tiles":      params.dir_project + "/tiles/"    + params.country,
+    "tiles":      params.dir_project + "/tilessub/"    + params.country,
     "mask":       params.dir_project + "/mask/"     + params.country,
     "zone":       params.dir_project + "/zone/"     + params.country,
     "osm":        params.dir_project + "/osm/"      + params.country,
@@ -94,10 +94,10 @@ params.scale = [
 
 // options for gdal
 params.gdal = [
-    "calc_opt_byte":  '--NoDataValue=255   --type=Byte    --format=GTiff --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
-    "calc_opt_int16": '--NoDataValue=-9999 --type=Int16   --format=GTiff --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
-    "calc_opt_float": '--NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
-    "tran_opt_float": '-a_nodata -9999 -ot Float32 -of GTiff -co COMPRESS=LZW -co PREDICTOR=2 -co BIGTIFF=YES -co TILED=YES'
+    "calc_opt_byte":  '--NoDataValue=255   --type=Byte    --format=GTiff --creation-option=INTERLEAVE=BAND --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
+    "calc_opt_int16": '--NoDataValue=-9999 --type=Int16   --format=GTiff --creation-option=INTERLEAVE=BAND --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
+    "calc_opt_float": '--NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option=INTERLEAVE=BAND --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
+    "tran_opt_float": '-a_nodata -9999 -ot Float32 -of GTiff  -co INTERLEAVE=BAND -co COMPRESS=LZW -co PREDICTOR=2 -co BIGTIFF=YES -co TILED=YES'
 ]
 
 
@@ -123,8 +123,6 @@ include { mass_rail }                       from './module/mass_rail.nf'
 include { mass_other }                      from './module/mass_other.nf'
 include { mass_building }                   from './module/mass_building.nf'
 include { mass_grand_total }                from './module/mass_grand_total.nf'
-include { zonal_stats }                     from './module/zonal_stats.nf'
-
 
 
 /**-----------------------------------------------------------------------
@@ -145,19 +143,22 @@ workflow {
     // area of street types
     area_street(
         collection.out.street, 
-        collection.out.street_brdtun)
+        collection.out.street_brdtun,
+        collection.out.zone)
 
     // area of rail types
     area_rail(
         collection.out.rail, 
-        collection.out.rail_brdtun)
+        collection.out.rail_brdtun,
+        collection.out.zone)
  
     // area of other infrastructure types
     area_other(
         collection.out.apron, 
         collection.out.taxi,
         collection.out.runway, 
-        collection.out.parking)
+        collection.out.parking,
+        collection.out.zone)
 
     // area of aboveground infrastructure
     area_aboveground_infrastructure(
@@ -193,7 +194,8 @@ workflow {
     // area of building types
     area_building(
         property_building.out.area,
-        property_building.out.type)
+        property_building.out.type,
+        collection.out.zone)
 
     // volume of building types
     volume_building(
@@ -204,154 +206,73 @@ workflow {
         area_building.out.commercial_innercity,
         area_building.out.highrise,
         area_building.out.skyscraper,
-        property_building.out.height)
+        property_building.out.height,
+        collection.out.zone)
 
     // area of remaining impervious infrastructure
     area_impervious(
         collection.out.impervious,
         property_building.out.area,
-        area_aboveground_infrastructure.out.total)
+        area_aboveground_infrastructure.out.total,
+        collection.out.zone)
 
 
     // mass of streets
     mass_street(
-        area_street.out.motorway
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.motorway]}
-            ),
-        area_street.out.primary
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.primary]}
-            ),
-        area_street.out.secondary
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.secondary]}
-            ),
-        area_street.out.tertiary
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.tertiary]}
-            ),
-        multijoin([area_street.out.local, collection.out.street_climate], [0,1])
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, 
-                    tab.local_climate1, tab.local_climate2, tab.local_climate3, 
-                    tab.local_climate4, tab.local_climate5, tab.local_climate6]}
-            ),
-        multijoin([area_street.out.track, collection.out.street_climate], [0,1])
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, 
-                    tab.track_climate1, tab.track_climate2, tab.track_climate3, 
-                    tab.track_climate4, tab.track_climate5, tab.track_climate6]}
-            ),
-        area_street.out.motorway_elevated
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.motorway_elevated]}
-            ),
-        area_street.out.other_elevated
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.other_elevated]}
-            ),
-        area_street.out.bridge_motorway
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.bridge_motorway]}
-            ),
-        area_street.out.bridge_other
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.bridge_other]}
-            ),
-        area_street.out.tunnel
-            .combine(
-                mi.out.street.map{ tab -> [tab.material, tab.tunnel]}
-            )
+        area_street.out.motorway,
+        area_street.out.primary,
+        area_street.out.secondary,
+        area_street.out.tertiary,
+        area_street.out.local,
+        area_street.out.track,
+        area_street.out.motorway_elevated,
+        area_street.out.other_elevated,
+        area_street.out.bridge_motorway,
+        area_street.out.bridge_other,
+        area_street.out.tunnel,
+        collection.out.street_climate,
+        collection.out.zone,
+        mi.out.street,
     )
 
 
     // mass of rails
     mass_rail(
-        area_rail.out.railway
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.railway]}
-            ),
-        area_rail.out.tram
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.tram]}
-            ),
-        area_rail.out.subway
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.subway]}
-            ),
-        area_rail.out.subway_elevated
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.subway_elevated]}
-            ),
-        area_rail.out.subway_surface
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.subway_surface]}
-            ),
-        area_rail.out.other
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.other]}
-            ),
-        area_rail.out.bridge
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.bridge]}
-            ),
-        area_rail.out.tunnel
-            .combine(
-                mi.out.rail.map{ tab -> [tab.material, tab.tunnel]}
-            )
+        area_rail.out.railway,
+        area_rail.out.tram,
+        area_rail.out.subway,
+        area_rail.out.subway_elevated,
+        area_rail.out.subway_surface,
+        area_rail.out.other,
+        area_rail.out.bridge,
+        area_rail.out.tunnel,
+        collection.out.zone,
+        mi.out.rail
     )
 
 
     // mass of other infrastructure
     mass_other(
-        area_other.out.airport
-            .combine(
-                mi.out.other.map{ tab -> [tab.material, tab.airport]}
-            ),
-        area_other.out.parking
-            .combine(
-                mi.out.other.map{ tab -> [tab.material, tab.parking]}
-            ),
-        area_impervious.out.remaining
-            .combine(
-                mi.out.other.map{ tab -> [tab.material, tab.impervious]}
-            )
+        area_other.out.airport,
+        area_other.out.parking,
+        area_impervious.out.remaining,
+        collection.out.zone,
+        mi.out.other
     )
 
 
     // mass of buildings
     mass_building(
-        volume_building.out.lightweight
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.lightweight]}
-            ),
-        multijoin([volume_building.out.singlefamily, collection.out.building_climate], [0,1])
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, 
-                    tab.singlefamily_climate1, tab.singlefamily_climate2, tab.singlefamily_climate3, 
-                    tab.singlefamily_climate4, tab.singlefamily_climate5]}
-            ),
-        volume_building.out.multifamily
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.multifamily]}
-            ),
-        volume_building.out.commercial_industrial
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.commercial_industrial]}
-            ),
-        volume_building.out.commercial_innercity
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.commercial_innercity]}
-            ),
-        volume_building.out.highrise
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.highrise]}
-            ),
-        volume_building.out.skyscraper
-            .combine(
-                mi.out.building.map{ tab -> [tab.material, tab.skyscraper]}
-            )
+        volume_building.out.lightweight,
+        volume_building.out.singlefamily,
+        volume_building.out.multifamily,
+        volume_building.out.commercial_industrial,
+        volume_building.out.commercial_innercity,
+        volume_building.out.highrise,
+        volume_building.out.skyscraper,
+        collection.out.building_climate,
+        collection.out.zone,
+        mi.out.building
     )
 
 
@@ -360,20 +281,8 @@ workflow {
         mass_street.out.total,
         mass_rail.out.total,
         mass_other.out.total,
-        mass_building.out.total
-    )
-
-
-    // zonal statistics
-    zonal_stats(
-        mass_street.out.total,
-        mass_rail.out.total,
-        mass_other.out.total,
         mass_building.out.total,
         collection.out.zone
     )
-    
 
 }
-
-

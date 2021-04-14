@@ -2,6 +2,7 @@
 
 process volume {
 
+    label 'gdal'
     label 'mem_2'
 
     input:

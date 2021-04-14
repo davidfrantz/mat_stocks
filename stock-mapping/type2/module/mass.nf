@@ -2,22 +2,24 @@
 
 process mass {
 
+    label 'gdal'
+
     input:
-    tuple val(tile), val(state), file(dimension), val(material), val(mi)
+    tuple val(tile), val(state), file(input), val(type), val(material), val(mi), val(pubdir)
 
     output:
-    tuple val(tile), val(state), val(material), file('mass*.tif')
+    tuple val(tile), val(state), val(type), val(material), file('mass*.tif')
 
-    publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
+    publishDir "$pubdir", mode: 'copy'
 
     """
-    base=$dimension
+    base=$input
     base=\$(basename \$base)
     base=\${base/area/mass}
     base=\${base/volume/mass}
     base=\${base%%.tif}
     gdal_calc.py \
-        -A $dimension \
+        -A $input \
         --calc="( A * $mi )" \
         --outfile=\$base"_"$material".tif" \
         $params.gdal.calc_opt_float
@@ -28,25 +30,27 @@ process mass {
 
 process mass_climate5 {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
-    tuple val(tile), val(state), file(dimension), file(climate), val(material), 
-        val(mi1), val(mi2), val(mi3), val(mi4), val(mi5)
+    tuple val(tile), val(state), file(input), file(climate), 
+        val(type), val(material), 
+        val(mi1), val(mi2), val(mi3), val(mi4), val(mi5), val(pubdir)
 
     output:
-    tuple val(tile), val(state), val(material), file('mass*.tif')
+    tuple val(tile), val(state), val(type), val(material), file('mass*.tif')
 
-    publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
+    publishDir "$pubdir", mode: 'copy'
 
     """
-    base=$dimension
+    base=$input
     base=\$(basename \$base)
     base=\${base/area/mass}
     base=\${base/volume/mass}
     base=\${base%%.tif}
     gdal_calc.py \
-        -A $dimension \
+        -A $input \
         -B $climate \
         --calc="( \
             ( A * (B == 1) * $mi1 ) + \
@@ -63,25 +67,27 @@ process mass_climate5 {
 
 process mass_climate6 {
 
+    label 'gdal'
     label 'mem_2'
 
     input:
-    tuple val(tile), val(state), file(dimension), file(climate), val(material), 
-        val(mi1), val(mi2), val(mi3), val(mi4), val(mi5), val(mi6)
+    tuple val(tile), val(state), file(input), file(climate), 
+        val(type), val(material), 
+        val(mi1), val(mi2), val(mi3), val(mi4), val(mi5), val(mi6), val(pubdir)
 
     output:
-    tuple val(tile), val(state), val(material), file('mass*.tif')
+    tuple val(tile), val(state), val(type), val(material), file('mass*.tif')
 
-    publishDir "$params.dir.pub/$state/$tile/mass/$material", mode: 'copy'
+    publishDir "$pubdir", mode: 'copy'
 
     """
-    base=$dimension
+    base=$input
     base=\$(basename \$base)
     base=\${base/area/mass}
     base=\${base/volume/mass}
     base=\${base%%.tif}
     gdal_calc.py \
-        -A $dimension \
+        -A $input \
         -B $climate \
         --calc="( \
             ( A * (B == 1) * $mi1 ) + \
