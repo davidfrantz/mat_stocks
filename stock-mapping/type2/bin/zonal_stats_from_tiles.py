@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
+import uuid
 import gdal
 import numpy as np
 
@@ -18,7 +19,14 @@ targetND = targetDS.GetRasterBand(1).GetNoDataValue()
 #zonesND = zonesDS.GetRasterBand(1).GetNoDataValue()
 
 target = targetDS.ReadAsArray()
-zones = zonesDS.ReadAsArray()
+
+gt = targetDS.GetGeoTransform()
+randomPath = "/vsimem/" + str(uuid.uuid4()) + ".vrt"
+zonesDS_T = gdal.Translate(randomPath, zonesDS, xRes = gt[1], yRes = -gt[5])
+zones = zonesDS_T.ReadAsArray()
+
+zonesDS_T = None
+gdal.Unlink(randomPath)
 
 ## ID unique ids in zones, write to array
 uids = np.unique(zones)
