@@ -22,7 +22,7 @@ target = targetDS.ReadAsArray()
 
 gt = targetDS.GetGeoTransform()
 randomPath = "/vsimem/" + str(uuid.uuid4()) + ".vrt"
-zonesDS_T = gdal.Translate(randomPath, zonesDS, xRes = gt[1], yRes = -gt[5])
+zonesDS_T = gdal.Translate(randomPath, zonesDS, xRes = gt[1], yRes = -gt[5], resampleAlg = "mode")
 zones = zonesDS_T.ReadAsArray()
 
 zonesDS_T = None
