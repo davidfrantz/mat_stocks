@@ -37,7 +37,7 @@ workflow finalize {
     // zonal_merge takes state, category, dimension, material, basename, filename, zones, pubdir
     zonal_merge_state.out
     .map{ it[0..5]
-          .plus("$params.dir.pub/ALL" + it[3,2,4].join("/") ) }
+          .plus("$params.dir.pub/ALL/" + it[2,1,3].join("/") ) }
     .groupTuple(by: [1,2,3,4,6]) \
     | zonal_merge_country
 

@@ -26,7 +26,7 @@ params.dir = [
     "footprint":  params.dir_project + "/building/" + params.country,
     "height":     params.dir_project + "/height/"   + params.country,
     "climate":    params.dir_project + "/climate/"  + params.country,
-    "pub":        params.dir_project + "/stock/"    + params.country,
+    "pub":        params.dir_project + "/stock2/"    + params.country,
     "mi":         params.dir_project + "/mi/"       + params.country,
     "areacorr":   params.dir_project + "/areacorr/" + params.country
 ]
