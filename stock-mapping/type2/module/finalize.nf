@@ -3,6 +3,7 @@ include { pyramid }                            from './pyramid.nf'
 include { zonal }                              from './zonal.nf'
 include { zonal_merge as zonal_merge_state   } from './zonal.nf'
 include { zonal_merge as zonal_merge_country } from './zonal.nf'
+include { stage_in_directory; mosaic         } from './mosaic.nf'
 
 
 workflow finalize {
@@ -15,11 +16,26 @@ workflow finalize {
     **/
 
     main:
-    // pyramid takes filename and pubdir
+
+    // pyramid takes filename, pubdir
     input
-    .map{ [ it[6], 
-            "$params.dir.pub/" + it[1,0,3,2,4].join("/") ] } \
+    .map{ [ it[6], "$params.dir.pub/" + it[1,0,3,2,4].join("/") ] }
     | pyramid
+
+    // stage_in_directory takes relative pubdir, tile, state, category, dimension, material, basename, filename
+    input
+    .map{ it[0..-1].plus(it[0,3,2,4].join("/")) } \
+    | stage_in_directory
+
+    stage_in_directory.out
+    .map{ it[0..-1]
+          .plus("mosaic/" + it[3,2,4].join("/") ) }
+    .map{ it[0..-1]
+          .plus("$params.dir.pub/" + it[1] + "/mosaic/" + it[3,2,4].join("/") ) }
+    .groupTuple(by: [1,5])
+    .map{ [ it[6], it[7].first(), it[8].first() ] } \
+    | mosaic
+
 
     // zonal takes tile, state, category, dimension, material, basename, filename, zones, pubdir
     multijoin([input, zone], [0,1])

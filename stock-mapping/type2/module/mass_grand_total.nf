@@ -33,7 +33,6 @@ workflow mass_grand_total {
                 mass_grand_total_Gt_10km2.out)
         .map{
             [ it[0], it[1], "", "", "", it[4].name, it[4] ] }
-        .view()
 
     finalize(all_published, zone)
 
