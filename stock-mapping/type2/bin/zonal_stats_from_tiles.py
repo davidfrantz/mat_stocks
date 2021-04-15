@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import sys
-import uuid
+#import uuid
 import gdal
 import pandas as pd
 import numpy as np
@@ -22,26 +22,31 @@ targetND = targetDS.GetRasterBand(1).GetNoDataValue()
 
 target = targetDS.ReadAsArray()
 
-gt = targetDS.GetGeoTransform()
-randomPath = "/vsimem/" + str(uuid.uuid4()) + ".vrt"
-zonesDS_T = gdal.Translate(randomPath, zonesDS, xRes = gt[1], yRes = -gt[5], resampleAlg = "mode")
-zones = zonesDS_T.ReadAsArray()
+#gt = targetDS.GetGeoTransform()
+#randomPath = "/vsimem/" + str(uuid.uuid4()) + ".vrt"
+#zonesDS_T = gdal.Translate(randomPath, zonesDS, xRes = gt[1], yRes = -gt[5], resampleAlg = "mode")
+#zones = zonesDS_T.ReadAsArray()
 
-zonesDS_T = None
-gdal.Unlink(randomPath)
+#zonesDS_T = None
+#gdal.Unlink(randomPath)
+
+zones = zonesDS.ReadAsArray()
 
 ## ID unique ids in zones, write to array
 uids = np.unique(zones)
 sums = []
 
 ## loop through ids, for each id, build sum of target[zones == ID)
-for uid in uids:
-    sums.append(np.sum(target, where = (zones == uid) & (target != targetND)))
+try:
+    for uid in uids:
+        sums.append(np.sum(target, where = (zones == uid) & (target != targetND)))
 
-all = [uids, sums]
+        all = [uids, sums]
 
-DF = pd.DataFrame(np.transpose(all), columns = ['zone','sum'])
-DF.to_csv(outPath, sep=";", header=True, index=False, quoting = csv.QUOTE_NONE)
+        DF = pd.DataFrame(np.transpose(all), columns = ['zone','sum'])
+        DF.to_csv(outPath, sep=";", header=True, index=False, quoting = csv.QUOTE_NONE)
 
-## write array to text file
-#np.savetxt(outPath, np.transpose(all), delimiter=";", header='zone;sum', fmt=['%i', '%1.6f'])
+        ## write array to text file
+        np.savetxt(outPath, np.transpose(all), delimiter=";", header='zone;sum', fmt=['%i', '%1.6f'])
+except ValueError:
+    print("WARNING: outPath " + outPath + " not created. Target dataset and zones must be of same shape.") 
