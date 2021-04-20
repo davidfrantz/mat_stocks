@@ -17,7 +17,7 @@ params.dir_project = "/data/Jakku/mat_stocks"
 
 // directories
 params.dir = [
-    "tiles":      params.dir_project + "/tilessub/"    + params.country,
+    "tiles":      params.dir_project + "/tiles/"    + params.country,
     "mask":       params.dir_project + "/mask/"     + params.country,
     "zone":       params.dir_project + "/zone/"     + params.country,
     "osm":        params.dir_project + "/osm/"      + params.country,
@@ -26,7 +26,7 @@ params.dir = [
     "footprint":  params.dir_project + "/building/" + params.country,
     "height":     params.dir_project + "/height/"   + params.country,
     "climate":    params.dir_project + "/climate/"  + params.country,
-    "pub":        params.dir_project + "/stock2/"    + params.country,
+    "pub":        params.dir_project + "/stock/"    + params.country,
     "mi":         params.dir_project + "/mi/"       + params.country,
     "areacorr":   params.dir_project + "/areacorr/" + params.country
 ]

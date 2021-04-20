@@ -11,7 +11,7 @@ process zonal {
         val(basename), file(values), file(zones), val(pubdir)
 
     output:
-    tuple val(tile), val(state), val(category), val(dimension), val(material), val(basename), file('*.csv')
+    tuple val(tile), val(state), val(category), val(dimension), val(material), val(basename), file('*.csv') optional true
 
     publishDir "$pubdir", mode: 'copy'
 
