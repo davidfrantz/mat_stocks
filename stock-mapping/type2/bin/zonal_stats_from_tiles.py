@@ -43,10 +43,8 @@ try:
 
         all = [uids, sums]
 
-        DF = pd.DataFrame(np.transpose(all), columns = ['zone','sum'])
-        DF.to_csv(outPath, sep=";", header=True, index=False, quoting = csv.QUOTE_NONE)
+    DF = pd.DataFrame(np.transpose(all), columns = ['zone','sum'])
+    DF.to_csv(outPath, sep=";", header=True, index=False, quoting = csv.QUOTE_NONE)
 
-        ## write array to text file
-        np.savetxt(outPath, np.transpose(all), delimiter=";", header='zone;sum', fmt=['%i', '%1.6f'])
 except ValueError:
     print("WARNING: outPath " + outPath + " not created. Target dataset and zones must be of same shape.") 
