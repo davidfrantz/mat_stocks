@@ -1,0 +1,25 @@
+TY  - JOUR
+T1  - Influence of neighbourhood information on ‘Local Climate Zone’ mapping in heterogeneous cities
+AU  - Verdonck, Marie-Leen
+AU  - Okujeni, Akpona
+AU  - van der Linden, Sebastian
+AU  - Demuzere, Matthias
+AU  - De Wulf, Robert
+AU  - Van Coillie, Frieke
+JO  - International Journal of Applied Earth Observation and Geoinformation
+VL  - 62
+SP  - 102
+EP  - 113
+PY  - 2017
+DA  - 2017/10/01/
+SN  - 0303-2434
+DO  - https://doi.org/10.1016/j.jag.2017.05.017
+UR  - https://www.sciencedirect.com/science/article/pii/S0303243417301265
+KW  - Local climate zones
+KW  - Landsat-8
+KW  - WUDAPT
+KW  - Random forest
+KW  - Contextual classifier
+KW  - Accuracy assessment
+AB  - Local climate zone (LCZ) mapping is an emerging field in urban climate research. LCZs potentially provide an objective framework to assess urban form and function worldwide. The scheme is currently being used to globally map LCZs as a part of the World Urban Database and Access Portal Tools (WUDAPT) initiative. So far, most of the LCZ maps lack proper quantitative assessment, challenging the generic character of the WUDAPT workflow. Using the standard method introduced by the WUDAPT community difficulties arose concerning the built zones due to high levels of heterogeneity. To overcome this problem a contextual classifier is adopted in the mapping process. This paper quantitatively assesses the influence of neighbourhood information on the LCZ mapping result of three cities in Belgium: Antwerp, Brussels and Ghent. Overall accuracies for the maps were respectively 85.7±0.5, 79.6±0.9, 90.2±0.4%. The approach presented here results in overall accuracies of 93.6±0.2, 92.6±0.3 and 95.6±0.3% for Antwerp, Brussels and Ghent. The results thus indicate a positive influence of neighbourhood information for all study areas with an increase in overall accuracies of 7.9, 13.0 and 5.4%. This paper reaches two main conclusions. Firstly, evidence was introduced on the relevance of a quantitative accuracy assessment in LCZ mapping, showing that the accuracies reported in previous papers are not easily achieved. Secondly, the method presented in this paper proves to be highly effective in Belgian cities, and given its open character shows promise for application in other heterogeneous cities worldwide.
+ER  - 
