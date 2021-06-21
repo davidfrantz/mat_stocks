@@ -67,7 +67,7 @@ workflow mass_building {
               tab.singlefamily_climate1, tab.singlefamily_climate2, tab.singlefamily_climate3, 
               tab.singlefamily_climate4, tab.singlefamily_climate5] } )
     .map{ it[0..-1]
-          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/building/" + it[4]) } \
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/building/" + it[5]) } \
     | mass_climate5
 
 

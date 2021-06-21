@@ -97,7 +97,7 @@ workflow mass_street {
     local
     .mix(track)
     .map{ it[0..-1]
-          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/street/" + it[4]) } \
+          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/street/" + it[5]) } \
     | mass_climate6
 
 

@@ -34,7 +34,7 @@ params.dir = [
 // raster collections
 params.raster = [
     "mask":             [params.dir.mask,       "5km.tif"],
-    "zone":             [params.dir.zone,       "county-5km.tif"],
+    "zone":             [params.dir.zone,       "counties-usgov-5km.tif"],
     "street":           [params.dir.osm,        "streets.tif"],
     "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
     "rail":             [params.dir.osm,        "railway.tif"],
