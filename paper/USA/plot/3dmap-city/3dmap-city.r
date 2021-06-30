@@ -13,7 +13,7 @@ city3d <- function(lat, lon, name, state, pop, fname, vmax){
 
     width <- 15000
 
-    map <- project(cbind(lon,lat), crs(stock) %>% as.character() , inv=FALSE)
+    map <- project(cbind(lon,lat), crs(stock) %>% as.character(), inv=FALSE)
 
     sub <- as(extent(map[1]-width, map[1]+width, map[2]-width, map[2]+width), 'SpatialPolygons')
     crs(sub) <- crs(stock)
@@ -53,22 +53,23 @@ city3d <- function(lat, lon, name, state, pop, fname, vmax){
         scale_fill_gradientn(
             colours = c("grey95", viridis(5), "orange", "red", "magenta"),
             values = c(0, seq(0.01, 0.075, length.out = 5), 0.2, 0.3, 1),
-            breaks = c(0.01, 0.1, 0.2, 0.28),
+            #breaks = c(0.01, 0.1, 0.2, 0.28),
+            breaks = c(25, 200, 400, 600),
             na.value = "white") +
         #labs(fill = "Total stock [kt/10000m²]") +
         coord_equal() +
         theme_map() +
         theme(legend.position = "none") +
-        ggtitle(sprintf("%s, %s - Population: %d", name, state, pop)) #+
-        #theme(legend.position = "none") #+
+        ggtitle(sprintf("%s, %s - Population: %d", name, state, pop)) +
+        theme(legend.position = "top") #+
         #theme(legend.key.width = unit(1000, "cm"))
     gg
 
-    #tiff("2d.tif",
-    #width = 8.8, height = 6, units = "cm", pointsize = 8,
-    #compression = "lzw", res = 600, type = "cairo", antialias = "subpixel")
-    #    gg
-    #dev.off()
+    tiff("2d.tif",
+    width = 8.8, height = 6, units = "cm", pointsize = 8,
+    compression = "lzw", res = 600, type = "cairo", antialias = "subpixel")
+        gg
+    dev.off()
 
 
     gg3 <- plot_gg(gg,
@@ -77,7 +78,9 @@ city3d <- function(lat, lon, name, state, pop, fname, vmax){
         height = 5,
         units = "cm",
         scale = 350,
-        triangulate = TRUE)#,
+        triangulate = TRUE,
+        #save_height_matrix = TRUE)
+        soliddepth = -0.5)#,
     gg3
 
 
