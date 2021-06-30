@@ -4,7 +4,7 @@ require(tidyr)
 cnt <- "USA"
 dbase <- "/data/Jakku/mat_stocks"
 dstock <- sprintf("%s/stock/%s/ALL", dbase, cnt)
-dcsv <- "/home/frantzda/mat_stocks/paper/USA/csv"
+dcsv <- sprintf("%s/git/mat_stocks/paper/USA/csv", dbase)
 
 files <-    dstock %>%
             dir(".csv", full.names = TRUE, recursive = TRUE) %>%
