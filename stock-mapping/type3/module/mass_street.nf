@@ -1,9 +1,9 @@
 /** street stock
 -----------------------------------------------------------------------**/
 
-include { multijoin; remove }                  from './defs.nf'
-include { mass; mass_climate6 }                from './mass.nf'
-include { finalize }                           from './finalize.nf'
+include { multijoin; remove } from './defs.nf'
+include { mass }              from './mass.nf'
+include { finalize }          from './finalize.nf'
 
 
 workflow mass_street {
@@ -12,7 +12,7 @@ workflow mass_street {
     motorway; primary; secondary; tertiary;
     local; track; motorway_elevated; other_elevated
     bridge_motorway; bridge_other; tunnel;
-    climate; zone; mi
+    zone; mi
 
 
     main:
@@ -36,6 +36,16 @@ workflow mass_street {
     tertiary = tertiary
     .combine( Channel.from("tertiary") )
     .combine( mi.map{ tab -> [tab.material, tab.tertiary]} )
+
+    // tile, state, file, type, material, mi
+    local = local
+    .combine( Channel.from("local") )
+    .combine( mi.map{ tab -> [tab.material, tab.local]} )
+
+    // tile, state, file, type, material, mi
+    track = track
+    .combine( Channel.from("track") )
+    .combine( mi.map{ tab -> [tab.material, tab.track]} )
 
     // tile, state, file, type, material, mi
     motorway_elevated = motorway_elevated
@@ -68,6 +78,8 @@ workflow mass_street {
     .mix(primary,
          secondary,
          tertiary,
+         local,
+         track,
          motorway_elevated,
          other_elevated,
          bridge_motorway,
@@ -78,37 +90,14 @@ workflow mass_street {
     | mass
 
 
-    // tile, state, file, type, material, 6 x mi
-    local = multijoin([local, climate], [0,1])
-    .combine( Channel.from("local") )
-    .combine( mi.map{ tab -> [tab.material, 
-              tab.local_climate1, tab.local_climate2, tab.local_climate3, 
-              tab.local_climate4, tab.local_climate5, tab.local_climate6]} )
-
-    // tile, state, file, type, material, 6 x mi
-    track = multijoin([track, climate], [0,1])
-    .combine( Channel.from("track") )
-    .combine( mi.map{ tab -> [tab.material, 
-              tab.track_climate1, tab.track_climate2, tab.track_climate3, 
-              tab.track_climate4, tab.track_climate5, tab.track_climate6]} )
-
-
-    // tile, state, file, type, material, 6 x mi, pubdir -> mass_climate6
-    local
-    .mix(track)
-    .map{ it[0..-1]
-          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/street/" + it[5]) } \
-    | mass_climate6
-
-
     // tile, state, type, material, 11 x files, pubdir -> mass_building_total
     multijoin([ 
         mass.out.filter{ it[2].equals('motorway')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('primary')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('secondary')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('tertiary')}.map{ remove(it, 2) },
-        mass_climate6.out.filter{ it[2].equals('local')}.map{ remove(it, 2) },
-        mass_climate6.out.filter{ it[2].equals('track')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('local')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('track')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('motorway_elevated')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('other_elevated')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('bridge_motorway')}.map{ remove(it, 2) },
@@ -123,8 +112,7 @@ workflow mass_street {
 
     // tile, state, category, dimension, material, basename, filename -> 1st channel of finalize
     all_published = mass_street_total.out
-    .mix(mass.out,
-         mass_climate6.out)
+    .mix(mass.out)
     .map{
         [ it[0], it[1], "street", "mass", it[3], it[4].name, it[4] ] }
 

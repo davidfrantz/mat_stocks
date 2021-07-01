@@ -13,8 +13,6 @@ include { mask_collection_byte  as mask_impervious       } from './mask_collecti
 include { mask_collection_byte  as mask_footprint        } from './mask_collection.nf'
 include { mask_collection_int16 as mask_height           } from './mask_collection.nf'
 include { mask_collection_int16 as mask_type             } from './mask_collection.nf'
-include { mask_collection_byte  as mask_street_climate   } from './mask_collection.nf'
-include { mask_collection_byte  as mask_building_climate } from './mask_collection.nf'
 include { mask_collection_int16 as mask_zone             } from './mask_collection.nf'
 include { mask_collection_int16 as mask_areacorr         } from './mask_collection.nf'
 include { area_correction                                } from './area_correction.nf'
@@ -52,11 +50,9 @@ workflow collection {
     runway           = import_collection_full_country(proc_unit, params.raster.runway)
     parking          = import_collection_full_country(proc_unit, params.raster.parking)
     impervious       = import_collection_full_country(proc_unit, params.raster.impervious)
-    footprint        = import_collection_per_state(proc_unit,    params.raster.footprint)
-    height           = import_collection_per_state(proc_unit,    params.raster.height)
-    type             = import_collection_per_state(proc_unit,    params.raster.type)
-    street_climate   = import_collection_full_country(proc_unit, params.raster.street_climate)
-    building_climate = import_collection_full_country(proc_unit, params.raster.building_climate)
+    footprint        = import_collection_full_country(proc_unit, params.raster.footprint)
+    height           = import_collection_full_country(proc_unit, params.raster.height)
+    type             = import_collection_full_country(proc_unit, params.raster.type)
     areacorr         = import_collection_full_country(proc_unit, params.raster.areacorr)
 
 
@@ -77,8 +73,6 @@ workflow collection {
     mask_footprint(multijoin([mask, footprint], [0,1]))
     mask_height(multijoin([mask, height], [0,1]))
     mask_type(multijoin([mask, type], [0,1]))
-    mask_street_climate(multijoin([mask, street_climate], [0,1]))
-    mask_building_climate(multijoin([mask, building_climate], [0,1]))
     mask_areacorr(multijoin([mask, areacorr], [0,1]))
 
     area =  mask_street.out
@@ -141,8 +135,6 @@ workflow collection {
                         .map{ [ it[0], it[1], it[2] ] }
     height           = mask_height.out
     type             = mask_type.out
-    street_climate   = mask_street_climate.out
-    building_climate = mask_building_climate.out
 
 }
 

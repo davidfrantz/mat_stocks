@@ -9,8 +9,8 @@ nextflow.enable.dsl=2
 -----------------------------------------------------------------------**/
 
 // country
-params.country      = "USA"
-params.country_code = "US"
+params.country      = "GBR"
+params.country_code = "UK"
 
 // project directory
 params.dir_project = "/data/Jakku/mat_stocks"
@@ -25,7 +25,6 @@ params.dir = [
     "impervious": params.dir_project + "/fraction/" + params.country,
     "footprint":  params.dir_project + "/building/" + params.country,
     "height":     params.dir_project + "/height/"   + params.country,
-    "climate":    params.dir_project + "/climate/"  + params.country,
     "pub":        params.dir_project + "/stock/"    + params.country,
     "mi":         params.dir_project + "/mi/"       + params.country,
     "areacorr":   params.dir_project + "/areacorr/" + params.country
@@ -33,8 +32,8 @@ params.dir = [
 
 // raster collections
 params.raster = [
-    "mask":             [params.dir.mask,       "5km.tif"],
-    "zone":             [params.dir.zone,       "counties-usgov-5km.tif"],
+    "mask":             [params.dir.mask,       "mask.tif"],
+    "zone":             [params.dir.zone,       "counties.tif"],
     "street":           [params.dir.osm,        "streets.tif"],
     "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
     "rail":             [params.dir.osm,        "railway.tif"],
@@ -43,12 +42,10 @@ params.raster = [
     "taxi":             [params.dir.osm,        "taxiway.tif"],
     "runway":           [params.dir.osm,        "runway.tif"],
     "parking":          [params.dir.osm,        "parking.tif"],
-    "impervious":       [params.dir.impervious, "NLCD_2016_Impervious_L48_20190405_canada-cleaned.tif"],
+    "impervious":       [params.dir.impervious, "FRACTIONS_BU-WV-NWV-W_clean.tif"],
     "footprint":        [params.dir.footprint,  "building.tif"],
-    "height":           [params.dir.height,     "BUILDING-HEIGHT_HL_ML_MLP.tif"],
+    "height":           [params.dir.height,     "UK-BUILDING-HEIGHT_HL_ML_MLP.tif"],
     "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
-    "street_climate":   [params.dir.climate,    "road_climate.tif"],
-    "building_climate": [params.dir.climate,    "building_climate.tif"],
     "areacorr":         [params.dir.areacorr,   "true_area.tif"]
 ]
 
@@ -63,22 +60,20 @@ params.mi = [
 
 params.class = [
     // building type classes (mapped)
-    "res":        1,
-    "comm_ind":   3,
-    "comm_cbd":   5,
-    "mobile":     6,
+    "SDR":   1,
+    "ARCO":  2,
+    "MLR":   3,
+    "IRH":   4,
+    "DCMIX": 5,
+    "LIGHT": 6,
 
     // additional bulding type classes (set within workflow)
-    "res_sf":     1,
-    "res_mf":     2,
-    "highrise":   8,
-    "skyscraper": 9
+    "HIGH":  8,
+    "SKY":   9
 ]
 
 params.threshold = [
     // height thresholds
-    "height_building":   2,
-    "height_mf":         10,
     "height_highrise":   30,
     "height_skyscraper": 75,
 
@@ -230,7 +225,6 @@ workflow {
         area_street.out.bridge_motorway,
         area_street.out.bridge_other,
         area_street.out.tunnel,
-        collection.out.street_climate,
         collection.out.zone,
         mi.out.street,
     )
@@ -270,7 +264,6 @@ workflow {
         volume_building.out.commercial_innercity,
         volume_building.out.highrise,
         volume_building.out.skyscraper,
-        collection.out.building_climate,
         collection.out.zone,
         mi.out.building
     )

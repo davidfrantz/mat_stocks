@@ -1,9 +1,9 @@
 /** building stock
 -----------------------------------------------------------------------**/
 
-include { multijoin; remove }                          from './defs.nf'
-include { mass; mass_climate5 }                from './mass.nf'
-include { finalize }                           from './finalize.nf'
+include { multijoin; remove } from './defs.nf'
+include { mass }              from './mass.nf'
+include { finalize }          from './finalize.nf'
 
 
 workflow mass_building {
@@ -12,7 +12,7 @@ workflow mass_building {
     lightweight; singlefamily; multifamily; 
     commercial_industrial; commercial_innercity; 
     highrise; skyscraper;
-    climate; zone; mi
+    zone; mi
 
 
     main:
@@ -26,6 +26,11 @@ workflow mass_building {
     multifamily = multifamily
     .combine( Channel.from("multifamily") )
     .combine( mi.map{ tab -> [tab.material, tab.multifamily] } )
+
+    // tile, state, file, type, material, mi
+    singlefamily = singlefamily
+    .combine( Channel.from("singlefamily") )
+    .combine( mi.map{ tab -> [tab.material, tab.singlefamily] } )
 
     // tile, state, file, type, material, mi
     commercial_industrial = commercial_industrial
@@ -51,6 +56,7 @@ workflow mass_building {
     // tile, state, file, type, material, mi, pubdir -> mass
     lightweight
     .mix(multifamily,
+         singlefamily,
          commercial_industrial,
          commercial_innercity,
          highrise,
@@ -60,21 +66,10 @@ workflow mass_building {
     | mass
 
 
-    // tile, state, file, type, material, 5 x mi, pubdir -> mass_climate5
-    multijoin([singlefamily, climate], [0,1])
-    .combine( Channel.from("singlefamily") )
-    .combine( mi.map{ tab -> [tab.material, 
-              tab.singlefamily_climate1, tab.singlefamily_climate2, tab.singlefamily_climate3, 
-              tab.singlefamily_climate4, tab.singlefamily_climate5] } )
-    .map{ it[0..-1]
-          .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/building/" + it[5]) } \
-    | mass_climate5
-
-
     // tile, state, type, material, 7 x files, pubdir -> mass_building_total
     multijoin([ 
         mass.out.filter{ it[2].equals('lightweight')}.map{ remove(it, 2) },
-        mass_climate5.out.filter{ it[2].equals('singlefamily')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('singlefamily')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('multifamily')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('commercial_industrial')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('commercial_innercity')}.map{ remove(it, 2) },
@@ -89,8 +84,7 @@ workflow mass_building {
 
     // tile, state, category, dimension, material, basename, filename -> 1st channel of finalize
     all_published = mass_building_total.out
-    .mix(mass.out,
-         mass_climate5.out)
+    .mix(mass.out)
     .map{
         [ it[0], it[1], "building", "mass", it[3], it[4].name, it[4] ] }
 
