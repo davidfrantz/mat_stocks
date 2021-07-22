@@ -43,7 +43,7 @@ params.raster = [
     "runway":           [params.dir.osm,        "runway.tif"],
     "parking":          [params.dir.osm,        "parking.tif"],
     "impervious":       [params.dir.impervious, "FRACTIONS_BU-WV-NWV-W_clean.tif"],
-    "footprint":        [params.dir.footprint,  "building.tif"],
+    "footprint":        [params.dir.footprint,  "bld.tif"],
     "height":           [params.dir.height,     "UK-BUILDING-HEIGHT_HL_ML_MLP.tif"],
     "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
     "areacorr":         [params.dir.areacorr,   "true_area.tif"]
@@ -60,22 +60,23 @@ params.mi = [
 
 params.class = [
     // building type classes (mapped)
-    "SDR":   1,
-    "ARCO":  2,
-    "MLR":   3,
-    "IRH":   4,
-    "DCMIX": 5,
-    "LIGHT": 6,
+    "sdr":   1,
+    "arco":  2,
+    "mlr":   3,
+    "irh":   4,
+    "dcmix": 5,
+    "light": 6,
 
     // additional bulding type classes (set within workflow)
-    "HIGH":  8,
-    "SKY":   9
+    "high":  8,
+    "sky":   9
 ]
 
 params.threshold = [
     // height thresholds
-    "height_highrise":   30,
-    "height_skyscraper": 75,
+    "height_building":   2,
+    "height_high":   30,
+    "height_sky": 75,
 
     // area thresholds
     "area_impervious":   50,
@@ -94,7 +95,6 @@ params.gdal = [
     "calc_opt_float": '--NoDataValue=-9999 --type=Float32 --format=GTiff --creation-option=INTERLEAVE=BAND --creation-option=COMPRESS=LZW --creation-option=PREDICTOR=2 --creation-option=BIGTIFF=YES --creation-option=TILED=YES',
     "tran_opt_float": '-a_nodata -9999 -ot Float32 -of GTiff  -co INTERLEAVE=BAND -co COMPRESS=LZW -co PREDICTOR=2 -co BIGTIFF=YES -co TILED=YES'
 ]
-
 
 
 /**-----------------------------------------------------------------------
@@ -118,6 +118,7 @@ include { mass_rail }                       from './module/mass_rail.nf'
 include { mass_other }                      from './module/mass_other.nf'
 include { mass_building }                   from './module/mass_building.nf'
 include { mass_grand_total }                from './module/mass_grand_total.nf'
+
 
 
 /**-----------------------------------------------------------------------
@@ -158,11 +159,22 @@ workflow {
     // area of aboveground infrastructure
     area_aboveground_infrastructure(
         area_street.out.motorway,
+        area_street.out.motorway_link,
+        area_street.out.trunk,
+        area_street.out.trunk_link,
         area_street.out.primary,
+        area_street.out.primary_link,
         area_street.out.secondary,
+        area_street.out.secondary_link,
         area_street.out.tertiary,
-        area_street.out.local,
-        area_street.out.track,
+        area_street.out.tertiary_link,
+        area_street.out.residential,
+        area_street.out.living_street,
+        area_street.out.pedestrian,
+        area_street.out.footway,
+        area_street.out.cycleway,
+        area_street.out.other,
+        area_street.out.gravel,
         area_street.out.exclude,
         area_street.out.motorway_elevated,
         area_street.out.other_elevated,
@@ -194,13 +206,14 @@ workflow {
 
     // volume of building types
     volume_building(
-        area_building.out.lightweight,
-        area_building.out.singlefamily,
-        area_building.out.multifamily,
-        area_building.out.commercial_industrial,
-        area_building.out.commercial_innercity,
-        area_building.out.highrise,
-        area_building.out.skyscraper,
+        area_building.out.sdr,
+        area_building.out.arco,
+        area_building.out.mlr,
+        area_building.out.irh,
+        area_building.out.dcmix,
+        area_building.out.light,
+        area_building.out.high,
+        area_building.out.sky,
         property_building.out.height,
         collection.out.zone)
 
@@ -215,11 +228,22 @@ workflow {
     // mass of streets
     mass_street(
         area_street.out.motorway,
+        area_street.out.motorway_link,
+        area_street.out.trunk,
+        area_street.out.trunk_link,
         area_street.out.primary,
+        area_street.out.primary_link,
         area_street.out.secondary,
+        area_street.out.secondary_link,
         area_street.out.tertiary,
-        area_street.out.local,
-        area_street.out.track,
+        area_street.out.tertiary_link,
+        area_street.out.residential,
+        area_street.out.living_street,
+        area_street.out.pedestrian,
+        area_street.out.footway,
+        area_street.out.cycleway,
+        area_street.out.other,
+        area_street.out.gravel,
         area_street.out.motorway_elevated,
         area_street.out.other_elevated,
         area_street.out.bridge_motorway,
@@ -257,18 +281,19 @@ workflow {
 
     // mass of buildings
     mass_building(
-        volume_building.out.lightweight,
-        volume_building.out.singlefamily,
-        volume_building.out.multifamily,
-        volume_building.out.commercial_industrial,
-        volume_building.out.commercial_innercity,
-        volume_building.out.highrise,
-        volume_building.out.skyscraper,
+        area_building.out.sdr,   volume_building.out.sdr,
+        area_building.out.arco,  volume_building.out.arco,
+        area_building.out.mlr,   volume_building.out.mlr,
+        area_building.out.irh,   volume_building.out.irh,
+        area_building.out.dcmix, volume_building.out.dcmix,
+        area_building.out.light, volume_building.out.light,
+        area_building.out.high,  volume_building.out.high,
+        area_building.out.sky,   volume_building.out.sky,
         collection.out.zone,
         mi.out.building
     )
 
-
+/**
     // total techno-mass
     mass_grand_total(
         mass_street.out.total,
@@ -277,5 +302,5 @@ workflow {
         mass_building.out.total,
         collection.out.zone
     )
-
+**/
 }

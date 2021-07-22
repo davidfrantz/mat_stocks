@@ -4,52 +4,57 @@
 include { multijoin }                          from './defs.nf'
 include { finalize }                           from './finalize.nf'
 
-include { volume as volume_building_lightweight           } from './volume.nf'
-include { volume as volume_building_singlefamily          } from './volume.nf'
-include { volume as volume_building_multifamily           } from './volume.nf'
-include { volume as volume_building_commercial_industrial } from './volume.nf'
-include { volume as volume_building_commercial_innercity  } from './volume.nf'
-include { volume as volume_building_highrise              } from './volume.nf'
-include { volume as volume_building_skyscraper            } from './volume.nf'
+include { volume as volume_building_sdr }   from './volume.nf'
+include { volume as volume_building_arco }  from './volume.nf'
+include { volume as volume_building_mlr }   from './volume.nf'
+include { volume as volume_building_irh }   from './volume.nf'
+include { volume as volume_building_dcmix } from './volume.nf'
+include { volume as volume_building_high }  from './volume.nf'
+include { volume as volume_building_sky }   from './volume.nf'
+include { volume as volume_building_light } from './volume.nf'
 
 
 workflow volume_building {
 
     take:
-    area_lightweight
-    area_singlefamily
-    area_multifamily
-    area_commercial_industrial
-    area_commercial_innercity
-    area_highrise
-    area_skyscraper
+    area_sdr
+    area_arco
+    area_mlr
+    area_irh
+    area_dcmix
+    area_light
+    area_high
+    area_sky
     height
     zone
 
     main:
-    volume_building_lightweight(
-        multijoin([area_lightweight, height], [0,1]))
-    volume_building_singlefamily(
-        multijoin([area_singlefamily, height], [0,1]))
-    volume_building_multifamily(
-        multijoin([area_multifamily, height], [0,1]))
-    volume_building_commercial_industrial(
-        multijoin([area_commercial_industrial, height], [0,1]))
-    volume_building_commercial_innercity(
-        multijoin([area_commercial_innercity, height], [0,1]))
-    volume_building_highrise(
-        multijoin([area_highrise, height], [0,1]))
-    volume_building_skyscraper(
-        multijoin([area_skyscraper, height], [0,1]))
+    volume_building_sdr(
+        multijoin([area_sdr, height], [0,1]))
+    volume_building_arco(
+        multijoin([area_arco, height], [0,1]))
+    volume_building_mlr(
+        multijoin([area_mlr, height], [0,1]))
+    volume_building_irh(
+        multijoin([area_irh, height], [0,1]))
+    volume_building_dcmix(
+        multijoin([area_dcmix, height], [0,1]))
+    volume_building_light(
+        multijoin([area_light, height], [0,1]))
+    volume_building_high(
+        multijoin([area_high, height], [0,1]))
+    volume_building_sky(
+        multijoin([area_sky, height], [0,1]))
 
     all_published = 
-        volume_building_lightweight.out
-        .mix(   volume_building_singlefamily.out,
-                volume_building_multifamily.out,
-                volume_building_commercial_industrial.out,
-                volume_building_commercial_innercity.out,
-                volume_building_highrise.out,
-                volume_building_skyscraper.out)
+        volume_building_sdr.out
+        .mix(   volume_building_arco.out,
+                volume_building_mlr.out,
+                volume_building_irh.out,
+                volume_building_dcmix.out,
+                volume_building_light.out,
+                volume_building_high.out,
+                volume_building_sky.out)
         .map{
             [ it[0], it[1], "building", "volume", "", it[2].name, it[2] ] }
 
@@ -57,13 +62,14 @@ workflow volume_building {
 
 
     emit:
-    lightweight           = volume_building_lightweight.out
-    singlefamily          = volume_building_singlefamily.out
-    multifamily           = volume_building_multifamily.out
-    commercial_industrial = volume_building_commercial_industrial.out
-    commercial_innercity  = volume_building_commercial_innercity.out
-    highrise              = volume_building_highrise.out
-    skyscraper            = volume_building_skyscraper.out
+    sdr   = volume_building_sdr.out
+    arco  = volume_building_arco.out
+    mlr   = volume_building_mlr.out
+    irh   = volume_building_irh.out
+    dcmix = volume_building_dcmix.out
+    light = volume_building_light.out
+    high  = volume_building_high.out
+    sky   = volume_building_sky.out
 
 }
 

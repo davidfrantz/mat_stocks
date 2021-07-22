@@ -11,24 +11,24 @@ workflow area_building {
     area; type; zone
 
     main:
-    area_building_singlefamily(multijoin([area, type], [0,1]))
-    area_building_multifamily(multijoin([area, type], [0,1]))
-    area_building_commercial_industrial(multijoin([area, type], [0,1]))
-    area_building_commercial_innercity(multijoin([area, type], [0,1]))
-    area_building_highrise(multijoin([area, type], [0,1]))
-    area_building_skyscraper(multijoin([area, type], [0,1]))
-    area_building_garages(multijoin([area, type], [0,1]))
-    area_building_mobilehomes(multijoin([area, type], [0,1]))
-    area_building_lightweight(multijoin([area_building_garages.out, area_building_mobilehomes.out], [0,1]))
-
+    area_building_sdr(multijoin([area, type], [0,1]))
+    area_building_arco(multijoin([area, type], [0,1]))
+    area_building_mlr(multijoin([area, type], [0,1]))
+    area_building_irh(multijoin([area, type], [0,1]))
+    area_building_dcmix(multijoin([area, type], [0,1]))
+    area_building_high(multijoin([area, type], [0,1]))
+    area_building_sky(multijoin([area, type], [0,1]))
+    area_building_light(multijoin([area, type], [0,1]))
+    
     all_published = 
-        area_building_lightweight.out
-        .mix(   area_building_singlefamily.out,
-                area_building_multifamily.out,
-                area_building_commercial_industrial.out,
-                area_building_commercial_innercity.out,
-                area_building_highrise.out,
-                area_building_skyscraper.out)
+        area_building_light.out
+        .mix(   area_building_sdr.out,
+                area_building_arco.out,
+                area_building_mlr.out,
+                area_building_irh.out,
+                area_building_dcmix.out,
+                area_building_high.out,
+                area_building_sky.out)
         .map{
             [ it[0], it[1], "building", "area", "", it[2].name, it[2] ] }
 
@@ -36,19 +36,20 @@ workflow area_building {
 
 
     emit:
-    lightweight           = area_building_lightweight.out
-    singlefamily          = area_building_singlefamily.out
-    multifamily           = area_building_multifamily.out
-    commercial_industrial = area_building_commercial_industrial.out
-    commercial_innercity  = area_building_commercial_innercity.out
-    highrise              = area_building_highrise.out
-    skyscraper            = area_building_skyscraper.out
+    sdr   = area_building_sdr.out
+    arco  = area_building_arco.out
+    mlr   = area_building_mlr.out
+    irh   = area_building_irh.out
+    dcmix = area_building_dcmix.out
+    light = area_building_light.out
+    high  = area_building_high.out
+    sky   = area_building_sky.out
 
 }
 
 
-// building area of singlefamily (excl. garages)
-process area_building_singlefamily {
+// building area of sdr (excl. garages)
+process area_building_sdr {
 
     label 'gdal'
     label 'mem_2'
@@ -57,7 +58,7 @@ process area_building_singlefamily {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_singlefamily.tif')
+    tuple val(tile), val(state), file('area_building_sdr.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -65,17 +66,17 @@ process area_building_singlefamily {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( (A * (B == $params.class.res_sf)) -                     \
-                  (A * (B == $params.class.res_sf) * $params.threshold.percent_garage) )" \
-        --outfile=area_building_singlefamily.tif \
+        --calc="( (A * (B == $params.class.sdr)) -                     \
+                  (A * (B == $params.class.sdr) * $params.threshold.percent_garage) )" \
+        --outfile=area_building_sdr.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of garages
-process area_building_garages {
+// building area of light (incl. garages)
+process area_building_light {
 
     label 'gdal'
     label 'mem_2'
@@ -84,22 +85,23 @@ process area_building_garages {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_garages.tif')
+    tuple val(tile), val(state), file('area_building_light.tif')
 
     """
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.res_sf) * $params.threshold.percent_garage )" \
-        --outfile=area_building_garages.tif \
+        --calc="( (A * (B == $params.class.light)) +                     \
+                  (A * (B == $params.class.sdr) * $params.threshold.percent_garage) )" \
+        --outfile=area_building_light.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of mobilehomes
-process area_building_mobilehomes {
+// building area of arco
+process area_building_arco {
 
     label 'gdal'
     label 'mem_2'
@@ -108,57 +110,7 @@ process area_building_mobilehomes {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_mobilehomes.tif')
-
-    """
-    gdal_calc.py \
-        -A $area \
-        -B $type \
-        --calc="( A * (B == $params.class.mobile) )" \
-        --outfile=area_building_mobilehomes.tif \
-        $params.gdal.calc_opt_byte
-    """
-
-}
-
-
-// building area of lightweight
-process area_building_lightweight {
-
-    label 'gdal'
-    label 'mem_2'
-
-    input:
-    tuple val(tile), val(state), file(garage), file(mobile)
-
-    output:
-    tuple val(tile), val(state), file('area_building_lightweight.tif')
-
-    publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
-
-    """
-    gdal_calc.py \
-        -A $garage \
-        -B $mobile \
-        --calc="( A + B )" \
-        --outfile=area_building_lightweight.tif \
-        $params.gdal.calc_opt_byte
-    """
-
-}
-
-
-// building area of multifamily
-process area_building_multifamily {
-
-    label 'gdal'
-    label 'mem_2'
-
-    input:
-    tuple val(tile), val(state), file(area), file(type)
-
-    output:
-    tuple val(tile), val(state), file('area_building_multifamily.tif')
+    tuple val(tile), val(state), file('area_building_arco.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -166,8 +118,34 @@ process area_building_multifamily {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.res_mf) )" \
-        --outfile=area_building_multifamily.tif \
+        --calc="( A * (B == $params.class.arco) )" \
+        --outfile=area_building_arco.tif \
+        $params.gdal.calc_opt_byte
+    """
+
+}
+
+
+// building area of mlr
+process area_building_mlr {
+
+    label 'gdal'
+    label 'mem_2'
+
+    input:
+    tuple val(tile), val(state), file(area), file(type)
+
+    output:
+    tuple val(tile), val(state), file('area_building_mlr.tif')
+
+    publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
+
+    """
+    gdal_calc.py \
+        -A $area \
+        -B $type \
+        --calc="( A * (B == $params.class.mlr) )" \
+        --outfile=area_building_mlr.tif \
         $params.gdal.calc_opt_byte
     """
 
@@ -175,7 +153,7 @@ process area_building_multifamily {
 
 
 // building area of commercial/industrial
-process area_building_commercial_industrial {
+process area_building_irh {
 
     label 'gdal'
     label 'mem_2'
@@ -184,7 +162,7 @@ process area_building_commercial_industrial {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_commercial_industrial.tif')
+    tuple val(tile), val(state), file('area_building_irh.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -192,8 +170,8 @@ process area_building_commercial_industrial {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.comm_ind) )" \
-        --outfile=area_building_commercial_industrial.tif \
+        --calc="( A * (B == $params.class.irh) )" \
+        --outfile=area_building_irh.tif \
         $params.gdal.calc_opt_byte
     """
 
@@ -201,7 +179,7 @@ process area_building_commercial_industrial {
 
 
 // building area of commercial/innercity
-process area_building_commercial_innercity {
+process area_building_dcmix {
 
     label 'gdal'
     label 'mem_2'
@@ -210,7 +188,7 @@ process area_building_commercial_innercity {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_commercial_innercity.tif')
+    tuple val(tile), val(state), file('area_building_dcmix.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -218,16 +196,16 @@ process area_building_commercial_innercity {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.comm_cbd) )" \
-        --outfile=area_building_commercial_innercity.tif \
+        --calc="( A * (B == $params.class.dcmix) )" \
+        --outfile=area_building_dcmix.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of highrise buildings
-process area_building_highrise {
+// building area of high buildings
+process area_building_high {
 
     label 'gdal'
     label 'mem_2'
@@ -236,7 +214,7 @@ process area_building_highrise {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_highrise.tif')
+    tuple val(tile), val(state), file('area_building_high.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -244,16 +222,16 @@ process area_building_highrise {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.highrise) )" \
-        --outfile=area_building_highrise.tif \
+        --calc="( A * (B == $params.class.high) )" \
+        --outfile=area_building_high.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of skyscrapers
-process area_building_skyscraper {
+// building area of skys
+process area_building_sky {
 
     label 'gdal'
     label 'mem_2'
@@ -262,7 +240,7 @@ process area_building_skyscraper {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_skyscraper.tif')
+    tuple val(tile), val(state), file('area_building_sky.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -270,8 +248,8 @@ process area_building_skyscraper {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.skyscraper) )" \
-        --outfile=area_building_skyscraper.tif \
+        --calc="( A * (B == $params.class.sky) )" \
+        --outfile=area_building_sky.tif \
         $params.gdal.calc_opt_byte
     """
 

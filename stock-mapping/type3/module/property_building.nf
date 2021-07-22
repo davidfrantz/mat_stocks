@@ -91,11 +91,8 @@ process type_building {
             maximum(                                                               \
                 A,                                                                 \
                 maximum(                                                           \
-                    ( (A == $params.class.res) * (B >= $params.threshold.height_mf) * $params.class.res_mf ), \
-                    maximum(                                                       \
-                        ( (B >= $params.threshold.height_highrise)   * $params.class.highrise   ),     \
-                        ( (B >= $params.threshold.height_skyscraper) * $params.class.skyscraper )      \
-                    )                                                              \
+                    ( (B >= $params.threshold.height_high) * $params.class.high ), \
+                    ( (B >= $params.threshold.height_sky)  * $params.class.sky  )  \
                 )                                                                  \
             )                                                                      \
         "                                                                          \
