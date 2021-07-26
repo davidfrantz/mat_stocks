@@ -12,5 +12,3 @@ Input data for Northern Ireland are different. This is why Northern Ireland was 
 cd /data/Jakku/mat_stocks/stock/GBR
 nextflow -Dnxf.pool.type=sync run -resume /data/Jakku/mat_stocks/git/mat_stocks/stock-mapping/type3/stock-mapping_gbr.nf -w /data/Alderaan/stock -with-dag flowchart.html -with-report report.html
 ```
-
-**Still ToDo:** error in MI formatting, sums do not add up, fields are shifted
