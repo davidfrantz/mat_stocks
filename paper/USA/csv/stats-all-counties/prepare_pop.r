@@ -260,4 +260,22 @@ data <- data %>%
 
 nrow(data)
 
+
+# pop change
+fun <- function(x, dummy = 1L) {
+    data.frame(
+        YEAR = x$YEAR,
+        POP  = x$POP,
+        RPOP = c(NA, diff(x$POP) / x$POP[1:(length(x$POP)-1)] * 1000)
+    )
+}
+
+data <- data %>% 
+    group_by(FIPS) %>%
+    group_modify(fun) %>%
+    ungroup()
+
+nrow(data)
+
+
 write.csv(data, "paper/USA/csv/stats-all-counties/counties_pop.csv")
