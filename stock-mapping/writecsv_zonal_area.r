@@ -2,10 +2,10 @@ require(dplyr)
 require(tidyr)
 
 
-cnt <- "USA"
+cnt <- "GBR"
 dbase <- "/data/Jakku/mat_stocks"
 dstock <- sprintf("%s/stock/%s/ALL/area", dbase, cnt)
-dcsv <- sprintf("%s/git/mat_stocks/paper/USA/csv", dbase)
+dcsv <- sprintf("%s/git/mat_stocks/paper/%s/csv", dbase, cnt)
 
 files <-    dstock %>%
             dir(".csv", full.names = TRUE, recursive = TRUE)
@@ -22,9 +22,10 @@ for (i in 2:nfiles) {
         full_join(values[[i]], by = "zone")
 }
 
-str(df)
 colnames(df) <- c("zone", labels)
+str(df)
 
+dir.create(sprintf("%s/mass-per-county", dcsv))
 write.csv( df,
         sprintf("%s/mass-per-county/zonal_area_ENLOCALE.csv", dcsv),
         row.names = FALSE)
