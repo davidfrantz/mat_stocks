@@ -60,9 +60,11 @@ params.mi = [
 
 params.class = [
     // building type classes (mapped)
-    "sdr":   1,
+    "sdr":   1, // merge srd and arco
     "arco":  2,
+
     "mlr":   3,
+    
     "irh":   4,
     "dcmix": 5,
     "light": 6,
@@ -75,6 +77,11 @@ params.class = [
 params.threshold = [
     // height thresholds
     "height_building":   2,
+
+        // implement:
+        "height_mlr":   10,   // if sdr   & z > threshold --> appartment
+        "height_dcmix": 10,   // if dcmix & z > threshold --> tall dcmix
+
     "height_high":   30,
     "height_sky": 75,
 
