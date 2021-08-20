@@ -176,6 +176,7 @@ workflow {
         area_street.out.bridge_motorway,
         area_street.out.bridge_other,
         area_street.out.tunnel,
+        area_rail.out.shinkansen,
         area_rail.out.railway,
         area_rail.out.tram,
         area_rail.out.other,
@@ -249,6 +250,7 @@ workflow {
 
     // mass of rails
     mass_rail(
+        area_rail.out.shinkansen,
         area_rail.out.railway,
         area_rail.out.tram,
         area_rail.out.subway,

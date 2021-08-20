@@ -11,6 +11,7 @@ workflow area_rail {
     rail; rail_brdtun; zone
 
     main:
+    area_rail_shinkansen(rail)
     area_rail_railway(rail)
     area_rail_tram(rail)
     area_rail_other(rail)
@@ -22,8 +23,9 @@ workflow area_rail {
     area_rail_tunnel(multijoin([rail_brdtun, rail], [0,1]))
 
     all_published = 
-        area_rail_railway.out
-        .mix(   area_rail_tram.out,
+        area_rail_shinkansen.out
+        .mix(   area_rail_railway.out,
+                area_rail_tram.out,
                 area_rail_other.out,
                 area_rail_exclude.out,
                 area_rail_subway.out,
@@ -38,6 +40,7 @@ workflow area_rail {
 
 
     emit:
+    shinkansen      = area_rail_shinkansen.out
     railway         = area_rail_railway.out
     tram            = area_rail_tram.out
     other           = area_rail_other.out
@@ -78,6 +81,30 @@ workflow area_rail {
 **/
 
 
+// area [m²] of shinkansen rails
+process area_rail_shinkansen {
+
+    label 'gdal'
+
+    input:
+    tuple val(tile), val(state), file(rail)
+
+    output:
+    tuple val(tile), val(state), file('area_rail_shinkansen.tif') 
+    
+    publishDir "$params.dir.pub/$state/$tile/area/rail", mode: 'copy'
+
+    """
+    gdal_calc.py \
+        -A $rail --A_band=1 \
+        --calc='A' \
+        --outfile=area_rail_shinkansen.tif \
+        $params.gdal.calc_opt_byte
+    """
+
+}
+
+
 // area [m²] of regular rails
 process area_rail_railway {
 
@@ -94,7 +121,7 @@ process area_rail_railway {
 
     """
     gdal_calc.py \
-        -A $rail --A_band=1 \
+        -A $rail --A_band=7 \
         -B $rail --B_band=5 \
         --calc='minimum((A+B),100)' \
         --outfile=area_rail_railway.tif \
@@ -145,12 +172,11 @@ process area_rail_other {
     """
     gdal_calc.py \
         -A $rail --A_band=3 \
-        -B $rail --B_band=7 \
         -C $rail --C_band=8 \
         -D $rail --D_band=13 \
         -E $rail --E_band=14 \
         -F $rail --F_band=15 \
-        --calc='minimum((A+B+C+D+E+F),100)' \
+        --calc='minimum((A+C+D+E+F),100)' \
         --outfile=area_rail_other.tif \
         $params.gdal.calc_opt_byte
     """

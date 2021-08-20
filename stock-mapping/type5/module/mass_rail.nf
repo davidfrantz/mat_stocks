@@ -9,13 +9,18 @@ include { finalize }                           from './finalize.nf'
 workflow mass_rail {
 
     take:
-    railway; tram; subway; 
+    shinkansen; railway; tram; subway; 
     subway_elevated; subway_surface; 
     other; bridge; tunnel;
     zone; mi
 
 
     main:
+
+    // tile, state, file, type, material, mi
+    shinkansen = shinkansen
+    .combine( Channel.from("shinkansen") )
+    .combine( mi.map{ tab -> [tab.material, tab.shinkansen] } )
 
     // tile, state, file, type, material, mi
     railway = railway
@@ -59,8 +64,9 @@ workflow mass_rail {
 
 
     // tile, state, file, type, material, mi, pubdir -> mass
-    railway
-    .mix(tram,
+    shinkansen
+    .mix(railway,
+         tram,
          subway,
          subway_elevated,
          subway_surface,
@@ -74,6 +80,7 @@ workflow mass_rail {
 
     // tile, state, type, material, 8 x files, pubdir -> mass_building_total
     multijoin([
+        mass.out.filter{ it[2].equals('shinkansen')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('railway')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('tram')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('subway')}.map{ remove(it, 2) },
@@ -107,11 +114,11 @@ workflow mass_rail {
 process mass_rail_total {
 
     label 'gdal'
-    label 'mem_8'
+    label 'mem_9'
 
     input:
     tuple val(tile), val(state), val(material), 
-        file(railway), file(tram), file(subway), 
+        file(shinkansen), file(railway), file(tram), file(subway), 
         file(subway_elevated), file(subway_surface), 
         file(other), file(bridge), file(tunnel), val(pubdir)
 
@@ -122,6 +129,7 @@ process mass_rail_total {
 
     """
     gdal_calc.py \
+        -I $shinkansen \
         -A $railway \
         -B $tram \
         -C $subway \
@@ -130,7 +138,7 @@ process mass_rail_total {
         -F $other \
         -G $bridge \
         -H $tunnel \
-        --calc="(A+B+C+D+E+F+G+H)" \
+        --calc="(I+A+B+C+D+E+F+G+H)" \
         --outfile=mass_rail_total.tif \
         $params.gdal.calc_opt_float
     """

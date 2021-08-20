@@ -30,6 +30,7 @@ workflow area_aboveground_infrastructure {
     street_bridge_motorway
     street_bridge_other
     street_tunnel
+    rail_shinkansen
     rail_railway
     rail_tram
     rail_other
@@ -60,7 +61,8 @@ workflow area_aboveground_infrastructure {
 
     area_ag_rail_infrastructure(
          multijoin(
-           [rail_railway, 
+           [rail_shinkansen,
+            rail_railway, 
             rail_tram,
             rail_other, 
             rail_exclude, 
@@ -153,11 +155,11 @@ process area_ag_street_infrastructure {
 process area_ag_rail_infrastructure {
 
     label 'gdal'
-    label 'mem_8'
+    label 'mem_9'
 
     input:
     tuple val(tile), val(state), 
-          file(rail), file(tram), file(other), 
+          file(shinkansen), file(rail), file(tram), file(other), 
           file(exclude), file(subway_elevated), 
           file(subway_surface), file(bridge), 
           file(tunnel)
@@ -167,6 +169,7 @@ process area_ag_rail_infrastructure {
 
     """
     gdal_calc.py \
+        -H $shinkansen \
         -A $rail \
         -B $tram \
         -C $other \
@@ -175,7 +178,7 @@ process area_ag_rail_infrastructure {
         -F $subway_surface \
         -G $bridge \
         -Z $tunnel \
-        --calc='minimum((maximum((single(A+B+C+D+F)-Z),0)+(E+G)),100)' \
+        --calc='minimum((maximum((single(H+A+B+C+D+F)-Z),0)+(E+G)),100)' \
         --outfile=area_ag_rail_infrastructure.tif \
         $params.gdal.calc_opt_byte
     """
