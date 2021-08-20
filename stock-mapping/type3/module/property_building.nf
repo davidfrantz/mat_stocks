@@ -87,15 +87,21 @@ process type_building {
     gdal_calc.py \
         -A $type \
         -B $height \
-        --calc="                                                                   \
-            maximum(                                                               \
-                A,                                                                 \
-                maximum(                                                           \
-                    ( (B >= $params.threshold.height_high) * $params.class.high ), \
-                    ( (B >= $params.threshold.height_sky)  * $params.class.sky  )  \
-                )                                                                  \
-            )                                                                      \
-        "                                                                          \
+        --calc="                                                                                                              \
+            maximum(                                                                                                          \
+                A,                                                                                                            \
+                maximum(                                                                                                      \
+                    ( (A == $params.class.sdr_lr) * (B >= $params.threshold.height_midrise) * $params.class.sdr_mr ),         \
+                    maximum(                                                                                                  \
+                        ( (A == $params.class.dcmix_lr) * (B >= $params.threshold.height_midrise) * $params.class.dcmix_mr ), \
+                        maximum(                                                                                              \
+                            ( (B >= $params.threshold.height_high) * $params.class.high ),                                    \
+                            ( (B >= $params.threshold.height_sky)  * $params.class.sky  )                                     \
+                        )                                                                                                     \
+                    )                                                                                                         \
+                )                                                                                                             \
+            )                                                                                                                 \
+        "                                                                                                                     \
         --outfile=type_building.tif \
         $params.gdal.calc_opt_byte
     """
