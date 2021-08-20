@@ -80,7 +80,7 @@ params.threshold = [
 // scaling factors
 params.scale = [
     "height":   10,
-    "building": 0.43
+    "building": 0.40
 ]
 
 // options for gdal
