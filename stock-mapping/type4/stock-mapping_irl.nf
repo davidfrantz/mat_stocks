@@ -58,24 +58,23 @@ params.mi = [
 
 params.class = [
     // building type classes (mapped)
-    "sdr":   1,
-    "arco":  2,
-    "mlr":   3,
-    "irh":   4,
-    "dcmix": 5,
-    "light": 6,
-
+    "sdr_lr":    1,
+    "irh":       4,
+    "dcmix_lr":  5,
+    "light":     6,
     // additional bulding type classes (set within workflow)
-    "high":  8,
-    "sky":   9
+    "sdr_mr":    7,
+    "dcmix_mr":  8,
+    "high":      9,
+    "sky":      10
 ]
 
 params.threshold = [
     // height thresholds
     "height_building":   2,
+    "height_midrise":   10,
     "height_high":   30,
     "height_sky": 75,
-
     // area thresholds
     "area_impervious":   25,
     "percent_garage":    0.1
@@ -212,11 +211,11 @@ workflow {
 
     // volume of building types
     volume_building(
-        area_building.out.sdr,
-        area_building.out.arco,
-        area_building.out.mlr,
+        area_building.out.sdr_lr,
+        area_building.out.sdr_mr,
+        area_building.out.dcmix_lr,
+        area_building.out.dcmix_mr,
         area_building.out.irh,
-        area_building.out.dcmix,
         area_building.out.light,
         area_building.out.high,
         area_building.out.sky,
@@ -280,19 +279,19 @@ workflow {
 
     // mass of buildings
     mass_building(
-        area_building.out.sdr,   volume_building.out.sdr,
-        area_building.out.arco,  volume_building.out.arco,
-        area_building.out.mlr,   volume_building.out.mlr,
-        area_building.out.irh,   volume_building.out.irh,
-        area_building.out.dcmix, volume_building.out.dcmix,
-        area_building.out.light, volume_building.out.light,
-        area_building.out.high,  volume_building.out.high,
-        area_building.out.sky,   volume_building.out.sky,
+        area_building.out.sdr_lr,   volume_building.out.sdr_lr,
+        area_building.out.sdr_mr,   volume_building.out.sdr_mr,
+        area_building.out.dcmix_lr, volume_building.out.dcmix_lr,
+        area_building.out.dcmix_mr, volume_building.out.dcmix_mr,
+        area_building.out.irh,      volume_building.out.irh,
+        area_building.out.light,    volume_building.out.light,
+        area_building.out.high,     volume_building.out.high,
+        area_building.out.sky,      volume_building.out.sky,
         collection.out.zone,
         mi.out.building
     )
 
-/**
+
     // total techno-mass
     mass_grand_total(
         mass_street.out.total,
@@ -301,5 +300,5 @@ workflow {
         mass_building.out.total,
         collection.out.zone
     )
-**/
+
 }
