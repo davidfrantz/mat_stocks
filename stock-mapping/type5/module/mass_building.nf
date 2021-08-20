@@ -9,12 +9,10 @@ include { finalize }          from './finalize.nf'
 workflow mass_building {
 
     take:
-    sdr_area;   sdr_volume;
-    arco_area;  arco_volume;
-    mlr_area;   mlr_volume;
-    irh_area;   irh_volume;
-    dcmix_area; dcmix_volume;
-    light_area; light_volume;
+    hard_lr_area;   hard_lr_volume;
+    hard_mr_area;  hard_mr_volume;
+    wood_lr_area;   wood_lr_volume;
+    wood_mr_area;   wood_mr_volume;
     high_area;  high_volume;
     sky_area;   sky_volume;
     zone; 
@@ -24,34 +22,24 @@ workflow mass_building {
     main:
 
     // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
-    sdr = multijoin([sdr_area, sdr_volume], [0,1] )
-    .combine( Channel.from("sdr") )
-    .combine( mi.map{ tab -> [tab.material, tab.sdr_area, tab.sdr_volume] } )
+    hard_lr = multijoin([hard_lr_area, hard_lr_volume], [0,1] )
+    .combine( Channel.from("hard_lr") )
+    .combine( mi.map{ tab -> [tab.material, tab.hard_lr_area, tab.hard_lr_volume] } )
 
     // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
-    arco = multijoin([arco_area, arco_volume], [0,1] )
-    .combine( Channel.from("arco") )
-    .combine( mi.map{ tab -> [tab.material, tab.arco_area, tab.arco_volume] } )
+    hard_mr = multijoin([hard_mr_area, hard_mr_volume], [0,1] )
+    .combine( Channel.from("hard_mr") )
+    .combine( mi.map{ tab -> [tab.material, tab.hard_mr_area, tab.hard_mr_volume] } )
 
     // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
-    mlr = multijoin([mlr_area, mlr_volume], [0,1] )
-    .combine( Channel.from("mlr") )
-    .combine( mi.map{ tab -> [tab.material, tab.mlr_area, tab.mlr_volume] } )
+    wood_lr = multijoin([wood_lr_area, wood_lr_volume], [0,1] )
+    .combine( Channel.from("wood_lr") )
+    .combine( mi.map{ tab -> [tab.material, tab.wood_lr_area, tab.wood_lr_volume] } )
 
     // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
-    irh = multijoin([irh_area, irh_volume], [0,1] )
-    .combine( Channel.from("irh") )
-    .combine( mi.map{ tab -> [tab.material, tab.irh_area, tab.irh_volume] } )
-
-    // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
-    dcmix = multijoin([dcmix_area, dcmix_volume], [0,1] )
-    .combine( Channel.from("dcmix") )
-    .combine( mi.map{ tab -> [tab.material, tab.dcmix_area, tab.dcmix_volume] } )
-
-    // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
-    light = multijoin([light_area, light_volume], [0,1] )
-    .combine( Channel.from("light") )
-    .combine( mi.map{ tab -> [tab.material, tab.light_area, tab.light_volume] } )
+    wood_mr = multijoin([wood_mr_area, wood_mr_volume], [0,1] )
+    .combine( Channel.from("wood_mr") )
+    .combine( mi.map{ tab -> [tab.material, tab.wood_mr_area, tab.wood_mr_volume] } )
 
     // tile, state, file_area, file_volume, type, material, mi_area, mi_volume
     high = multijoin([high_area, high_volume], [0,1] )
@@ -65,12 +53,10 @@ workflow mass_building {
 
 
     // tile, state, file, type, material, mi, pubdir -> mass
-    sdr
-    .mix(arco,
-         mlr,
-         irh,
-         dcmix,
-         light,
+    hard_lr
+    .mix(hard_mr,
+         wood_lr,
+         wood_mr,
          high,
          sky)
     .map{ it[0..-1]
@@ -80,12 +66,10 @@ workflow mass_building {
 
     // tile, state, material, 8 x files, pubdir -> mass_building_total
     multijoin([ 
-        mass_2comp.out.filter{ it[2].equals('sdr')}.map{ remove(it, 2) },
-        mass_2comp.out.filter{ it[2].equals('arco')}.map{ remove(it, 2) },
-        mass_2comp.out.filter{ it[2].equals('mlr')}.map{ remove(it, 2) },
-        mass_2comp.out.filter{ it[2].equals('irh')}.map{ remove(it, 2) },
-        mass_2comp.out.filter{ it[2].equals('dcmix')}.map{ remove(it, 2) },
-        mass_2comp.out.filter{ it[2].equals('light')}.map{ remove(it, 2) },
+        mass_2comp.out.filter{ it[2].equals('hard_lr')}.map{ remove(it, 2) },
+        mass_2comp.out.filter{ it[2].equals('hard_mr')}.map{ remove(it, 2) },
+        mass_2comp.out.filter{ it[2].equals('wood_lr')}.map{ remove(it, 2) },
+        mass_2comp.out.filter{ it[2].equals('wood_mr')}.map{ remove(it, 2) },
         mass_2comp.out.filter{ it[2].equals('high')}.map{ remove(it, 2) },
         mass_2comp.out.filter{ it[2].equals('sky')}.map{ remove(it, 2) }], 
         [0,1,2] )
@@ -117,9 +101,9 @@ process mass_building_total {
 
     input:
     tuple val(tile), val(state), val(material), 
-        file(sdr), file(arco), file(mlr),
-        file(irh), file(dcmix), file(light),
-        file(high), file(sky), val(pubdir)
+        file(hard_lr), file(hard_mr), file(wood_lr),
+        file(wood_mr), file(high), file(sky), 
+        val(pubdir)
 
     output:
     tuple val(tile), val(state), val("total"), val(material), file('mass_building_total.tif')
@@ -128,14 +112,13 @@ process mass_building_total {
 
     """
     gdal_calc.py \
-        -A $light \
-        -B $sdr \
-        -C $arco \
-        -D $irh \
-        -E $dcmix \
-        -F $high \
-        -G $sky \
-        --calc="(A+B+C+D+E+F+G)" \
+        -A $hard_lr \
+        -B $hard_mr \
+        -C $wood_lr \
+        -D $wood_mr \
+        -E $high \
+        -F $sky \
+        --calc="(A+B+C+D+E+F)" \
         --outfile=mass_building_total.tif \
         $params.gdal.calc_opt_float
     """

@@ -9,8 +9,8 @@ nextflow.enable.dsl=2
 -----------------------------------------------------------------------**/
 
 // country
-params.country      = "IRL"
-params.country_code = "IE"
+params.country      = "JPN"
+params.country_code = "JP"
 
 // project directory
 params.dir_project = "/data/Jakku/mat_stocks"
@@ -58,14 +58,11 @@ params.mi = [
 
 params.class = [
     // building type classes (mapped)
-    "sdr":   1,
-    "arco":  2,
-    "mlr":   3,
-    "irh":   4,
-    "dcmix": 5,
-    "light": 6,
-
+    "hard_lr": 1,
+    "wood_lr": 2,
     // additional bulding type classes (set within workflow)
+    "hard_mr": 3,
+    "wood_mr": 4,
     "high":  8,
     "sky":   9
 ]
@@ -73,12 +70,11 @@ params.class = [
 params.threshold = [
     // height thresholds
     "height_building":   2,
+    "height_midrise":   10,
     "height_high":   30,
     "height_sky": 75,
-
     // area thresholds
     "area_impervious":   25,
-    "percent_garage":    0.1
 ]
 
 // scaling factors
@@ -212,12 +208,10 @@ workflow {
 
     // volume of building types
     volume_building(
-        area_building.out.sdr,
-        area_building.out.arco,
-        area_building.out.mlr,
-        area_building.out.irh,
-        area_building.out.dcmix,
-        area_building.out.light,
+        area_building.out.hard_lr,
+        area_building.out.hard_mr,
+        area_building.out.wood_lr,
+        area_building.out.wood_mr,
         area_building.out.high,
         area_building.out.sky,
         property_building.out.height,
@@ -280,19 +274,17 @@ workflow {
 
     // mass of buildings
     mass_building(
-        area_building.out.sdr,   volume_building.out.sdr,
-        area_building.out.arco,  volume_building.out.arco,
-        area_building.out.mlr,   volume_building.out.mlr,
-        area_building.out.irh,   volume_building.out.irh,
-        area_building.out.dcmix, volume_building.out.dcmix,
-        area_building.out.light, volume_building.out.light,
+        area_building.out.hard_lr,   volume_building.out.hard_lr,
+        area_building.out.hard_mr,  volume_building.out.hard_mr,
+        area_building.out.wood_lr,   volume_building.out.wood_lr,
+        area_building.out.wood_mr,   volume_building.out.wood_mr,
         area_building.out.high,  volume_building.out.high,
         area_building.out.sky,   volume_building.out.sky,
         collection.out.zone,
         mi.out.building
     )
 
-/**
+
     // total techno-mass
     mass_grand_total(
         mass_street.out.total,
@@ -301,5 +293,5 @@ workflow {
         mass_building.out.total,
         collection.out.zone
     )
-**/
+
 }
