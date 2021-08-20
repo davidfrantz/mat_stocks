@@ -152,7 +152,7 @@ process area_building_dcmix_lr {
 }
 
 
-// building area of area_building_dcmix_mr
+// building area of dcmix_mr
 process area_building_dcmix_mr {
 
     label 'gdal'

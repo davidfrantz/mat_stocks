@@ -5,13 +5,13 @@ include { multijoin }                          from './defs.nf'
 include { finalize }                           from './finalize.nf'
 
 include { volume as volume_building_sdr_lr }   from './volume.nf'
-include { volume as volume_building_sdr_mr }  from './volume.nf'
-include { volume as volume_building_dcmix_lr }   from './volume.nf'
-include { volume as volume_building_irh }   from './volume.nf'
+include { volume as volume_building_sdr_mr }   from './volume.nf'
+include { volume as volume_building_dcmix_lr } from './volume.nf'
 include { volume as volume_building_dcmix_mr } from './volume.nf'
-include { volume as volume_building_high }  from './volume.nf'
-include { volume as volume_building_sky }   from './volume.nf'
-include { volume as volume_building_light } from './volume.nf'
+include { volume as volume_building_irh }      from './volume.nf'
+include { volume as volume_building_high }     from './volume.nf'
+include { volume as volume_building_sky }      from './volume.nf'
+include { volume as volume_building_light }    from './volume.nf'
 
 
 workflow volume_building {
@@ -69,7 +69,7 @@ workflow volume_building {
     irh      = volume_building_irh.out
     light    = volume_building_light.out
     high     = volume_building_high.out
-    sky      = volume_building_sky.out   
+    sky      = volume_building_sky.out
 
 }
 

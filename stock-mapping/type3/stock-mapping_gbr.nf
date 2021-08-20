@@ -292,7 +292,7 @@ workflow {
         mi.out.building
     )
 
-/**
+
     // total techno-mass
     mass_grand_total(
         mass_street.out.total,
@@ -301,5 +301,5 @@ workflow {
         mass_building.out.total,
         collection.out.zone
     )
-**/
+
 }
