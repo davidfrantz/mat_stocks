@@ -11,20 +11,18 @@ workflow area_building {
     area; type; zone
 
     main:
-    area_building_hard_lr(multijoin([area, type], [0,1]))
-    area_building_hard_mr(multijoin([area, type], [0,1]))
-    area_building_wood_lr(multijoin([area, type], [0,1]))
-    area_building_wood_mr(multijoin([area, type], [0,1]))
-    area_building_high(multijoin([area, type], [0,1]))
-    area_building_sky(multijoin([area, type], [0,1]))
-     
+    area_building_sdr(multijoin([area, type], [0,1]))
+    area_building_dlr(multijoin([area, type], [0,1]))
+    area_building_ci(multijoin([area, type], [0,1]))
+    area_building_mixed(multijoin([area, type], [0,1]))
+    area_building_traditional(multijoin([area, type], [0,1]))
+
     all_published = 
-        area_building_hard_lr.out
-        .mix(   area_building_hard_mr.out,
-                area_building_wood_lr.out,
-                area_building_wood_mr.out,
-                area_building_high.out,
-                area_building_sky.out)
+        area_building_sdr.out
+        .mix(   area_building_dlr.out,
+                area_building_ci.out,
+                area_building_mixed.out,
+                area_building_traditional.out)
         .map{
             [ it[0], it[1], "building", "area", "", it[2].name, it[2] ] }
 
@@ -32,18 +30,17 @@ workflow area_building {
 
 
     emit:
-    hard_lr   = area_building_hard_lr.out
-    hard_mr  = area_building_hard_mr.out
-    wood_lr   = area_building_wood_lr.out
-    wood_mr   = area_building_wood_mr.out
-    high  = area_building_high.out
-    sky   = area_building_sky.out
+    sdr         = area_building_sdr.out
+    dlr         = area_building_dlr.out
+    ci          = area_building_ci.out
+    mixed       = area_building_mixed.out
+    traditional = area_building_traditional.out
 
 }
 
 
-// building area of hard_lr
-process area_building_hard_lr {
+// building area of sdr
+process area_building_sdr {
 
     label 'gdal'
     label 'mem_2'
@@ -52,7 +49,7 @@ process area_building_hard_lr {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_hard_lr.tif')
+    tuple val(tile), val(state), file('area_building_sdr.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -60,16 +57,16 @@ process area_building_hard_lr {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.hard_lr) )" \
-        --outfile=area_building_hard_lr.tif \
+        --calc="( A * (B == $params.class.sdr) )" \
+        --outfile=area_building_sdr.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of hard_mr
-process area_building_hard_mr {
+// building area of dlr
+process area_building_dlr {
 
     label 'gdal'
     label 'mem_2'
@@ -78,7 +75,7 @@ process area_building_hard_mr {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_hard_mr.tif')
+    tuple val(tile), val(state), file('area_building_dlr.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -86,34 +83,8 @@ process area_building_hard_mr {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.hard_mr) )" \
-        --outfile=area_building_hard_mr.tif \
-        $params.gdal.calc_opt_byte
-    """
-
-}
-
-
-// building area of wood_lr
-process area_building_wood_lr {
-
-    label 'gdal'
-    label 'mem_2'
-
-    input:
-    tuple val(tile), val(state), file(area), file(type)
-
-    output:
-    tuple val(tile), val(state), file('area_building_wood_lr.tif')
-
-    publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
-
-    """
-    gdal_calc.py \
-        -A $area \
-        -B $type \
-        --calc="( A * (B == $params.class.wood_lr) )" \
-        --outfile=area_building_wood_lr.tif \
+        --calc="( A * (B == $params.class.dlr) )" \
+        --outfile=area_building_dlr.tif \
         $params.gdal.calc_opt_byte
     """
 
@@ -121,7 +92,7 @@ process area_building_wood_lr {
 
 
 // building area of commercial/industrial
-process area_building_wood_mr {
+process area_building_ci {
 
     label 'gdal'
     label 'mem_2'
@@ -130,7 +101,7 @@ process area_building_wood_mr {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_wood_mr.tif')
+    tuple val(tile), val(state), file('area_building_ci.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -138,16 +109,16 @@ process area_building_wood_mr {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.wood_mr) )" \
-        --outfile=area_building_wood_mr.tif \
+        --calc="( A * (B == $params.class.ci) )" \
+        --outfile=area_building_ci.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of high buildings
-process area_building_high {
+// building area of mixed
+process area_building_mixed {
 
     label 'gdal'
     label 'mem_2'
@@ -156,7 +127,7 @@ process area_building_high {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_high.tif')
+    tuple val(tile), val(state), file('area_building_mixed.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -164,16 +135,16 @@ process area_building_high {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.high) )" \
-        --outfile=area_building_high.tif \
+        --calc="( A * (B == $params.class.mixed) )" \
+        --outfile=area_building_mixed.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
 
-// building area of skys
-process area_building_sky {
+// building area of traditional buildings
+process area_building_traditional {
 
     label 'gdal'
     label 'mem_2'
@@ -182,7 +153,7 @@ process area_building_sky {
     tuple val(tile), val(state), file(area), file(type)
 
     output:
-    tuple val(tile), val(state), file('area_building_sky.tif')
+    tuple val(tile), val(state), file('area_building_traditional.tif')
 
     publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
 
@@ -190,11 +161,9 @@ process area_building_sky {
     gdal_calc.py \
         -A $area \
         -B $type \
-        --calc="( A * (B == $params.class.sky) )" \
-        --outfile=area_building_sky.tif \
+        --calc="( A * (B == $params.class.traditional) )" \
+        --outfile=area_building_traditional.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
-
-

@@ -3,10 +3,9 @@
 process volume {
 
     label 'gdal'
-    label 'mem_2'
 
     input:
-    tuple val(tile), val(state), file(area), file(height)
+    tuple val(tile), val(state), file(area)
 
     output:
     tuple val(tile), val(state), file('volume_*.tif')
@@ -19,8 +18,7 @@ process volume {
     base=\${base/area/volume}
     gdal_calc.py \
         -A $area \
-        -H $height \
-        --calc="( A * H )" \
+        --calc="( A *  $params.height )" \
         --outfile=\$base \
         $params.gdal.calc_opt_float
     """

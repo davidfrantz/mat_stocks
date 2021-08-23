@@ -9,8 +9,8 @@ nextflow.enable.dsl=2
 -----------------------------------------------------------------------**/
 
 // country
-params.country      = "JPN"
-params.country_code = "JP"
+params.country      = "UGA"
+params.country_code = "UG"
 
 // project directory
 params.dir_project = "/data/Jakku/mat_stocks"
@@ -22,8 +22,7 @@ params.dir = [
     "zone":       params.dir_project + "/zone/"     + params.country,
     "osm":        params.dir_project + "/osm/"      + params.country,
     "type":       params.dir_project + "/type/"     + params.country,
-    "impervious": params.dir_project + "/fraction/" + params.country,
-    "height":     params.dir_project + "/height/"   + params.country,
+    "footprint":  params.dir_project + "/building/" + params.country,
     "pub":        params.dir_project + "/stock/"    + params.country,
     "mi":         params.dir_project + "/mi/"       + params.country,
     "areacorr":   params.dir_project + "/areacorr/" + params.country
@@ -32,7 +31,7 @@ params.dir = [
 // raster collections
 params.raster = [
     "mask":             [params.dir.mask,       "mask.tif"],
-    "zone":             [params.dir.zone,       "counties.tif"],
+    "zone":             [params.dir.zone,       "districts.tif"],
     "street":           [params.dir.osm,        "streets.tif"],
     "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
     "rail":             [params.dir.osm,        "railway.tif"],
@@ -41,8 +40,7 @@ params.raster = [
     "taxi":             [params.dir.osm,        "taxiway.tif"],
     "runway":           [params.dir.osm,        "runway.tif"],
     "parking":          [params.dir.osm,        "parking.tif"],
-    "impervious":       [params.dir.impervious, "FRACTIONS_BU-WV-NWV-W_clean.tif"],
-    "height":           [params.dir.height,     "UK-BUILDING-HEIGHT_HL_ML_MLP.tif"],
+    "footprint":        [params.dir.footprint,  "bld.tif"],
     "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
     "areacorr":         [params.dir.areacorr,   "true_area.tif"]
 ]
@@ -55,32 +53,21 @@ params.mi = [
     "other":    [params.dir.mi, "other.csv"], 
 ]
 
-
 params.class = [
     // building type classes (mapped)
-    "hard_lr": 1,
-    "wood_lr": 2,
-    // additional bulding type classes (set within workflow)
-    "hard_mr": 3,
-    "wood_mr": 4,
-    "high":  8,
-    "sky":   9
+    "sdr":         1, // semi-detached residential
+    "dlr":         2, // dense lightweight residential housing
+    "ci":          3,
+    "mixed":       4,
+    "traditional": 5
 ]
+
+// height of ALL buildings
+params.height = 4
 
 params.threshold = [
-    // height thresholds
-    "height_building":   2,
-    "height_midrise":   10,
-    "height_high":   30,
-    "height_sky": 75,
     // area thresholds
-    "area_impervious":   25,
-]
-
-// scaling factors
-params.scale = [
-    "height":   10,
-    "building": 0.43
+    "area_impervious":   0,
 ]
 
 // options for gdal
@@ -104,7 +91,6 @@ include { area_street }                     from './module/area_street.nf'
 include { area_rail }                       from './module/area_rail.nf'
 include { area_other }                      from './module/area_other.nf'
 include { area_aboveground_infrastructure } from './module/area_aboveground_infrastructure.nf'
-include { property_building }               from './module/property_building.nf'
 include { area_building }                   from './module/area_building.nf'
 include { volume_building }                 from './module/volume_building.nf'
 include { area_impervious }                 from './module/area_impervious.nf'
@@ -113,7 +99,6 @@ include { mass_rail }                       from './module/mass_rail.nf'
 include { mass_other }                      from './module/mass_other.nf'
 include { mass_building }                   from './module/mass_building.nf'
 include { mass_grand_total }                from './module/mass_grand_total.nf'
-
 
 
 /**-----------------------------------------------------------------------
@@ -151,92 +136,30 @@ workflow {
         collection.out.parking,
         collection.out.zone)
 
-    // area of aboveground infrastructure
-    area_aboveground_infrastructure(
-        area_street.out.motorway,
-        area_street.out.motorway_link,
-        area_street.out.trunk,
-        area_street.out.trunk_link,
-        area_street.out.primary,
-        area_street.out.primary_link,
-        area_street.out.secondary,
-        area_street.out.secondary_link,
-        area_street.out.tertiary,
-        area_street.out.tertiary_link,
-        area_street.out.residential,
-        area_street.out.living_street,
-        area_street.out.pedestrian,
-        area_street.out.footway,
-        area_street.out.cycleway,
-        area_street.out.other,
-        area_street.out.gravel,
-        area_street.out.exclude,
-        area_street.out.motorway_elevated,
-        area_street.out.other_elevated,
-        area_street.out.bridge_motorway,
-        area_street.out.bridge_other,
-        area_street.out.tunnel,
-        area_rail.out.railway,
-        area_rail.out.tram,
-        area_rail.out.other,
-        area_rail.out.exclude,
-        area_rail.out.subway_elevated,
-        area_rail.out.subway_surface,
-        area_rail.out.bridge,
-        area_rail.out.tunnel,
-        area_other.out.airport,
-        area_other.out.parking)
-
-    // building properties
-    property_building(
-        collection.out.height,
-        collection.out.impervious,
-        collection.out.type)
-
-    // area of remaining impervious infrastructure
-    area_impervious(
-        collection.out.impervious,
-        area_aboveground_infrastructure.out.total,
-        property_building.out.height,
-        collection.out.zone)
-
     // area of building types
     area_building(
-        area_impervious.out.building,
-        property_building.out.type,
+        collection.out.footprint,
+        collection.out.type,
         collection.out.zone)
 
     // volume of building types
     volume_building(
-        area_building.out.hard_lr,
-        area_building.out.hard_mr,
-        area_building.out.wood_lr,
-        area_building.out.wood_mr,
-        area_building.out.high,
-        area_building.out.sky,
-        property_building.out.height,
+        area_building.out.sdr,
+        area_building.out.dlr,
+        area_building.out.ci,
+        area_building.out.mixed,
+        area_building.out.traditional,
         collection.out.zone)
 
 
     // mass of streets
     mass_street(
         area_street.out.motorway,
-        area_street.out.motorway_link,
-        area_street.out.trunk,
-        area_street.out.trunk_link,
         area_street.out.primary,
-        area_street.out.primary_link,
         area_street.out.secondary,
-        area_street.out.secondary_link,
         area_street.out.tertiary,
-        area_street.out.tertiary_link,
-        area_street.out.residential,
-        area_street.out.living_street,
-        area_street.out.pedestrian,
-        area_street.out.footway,
-        area_street.out.cycleway,
-        area_street.out.other,
-        area_street.out.gravel,
+        area_street.out.local,
+        area_street.out.track,
         area_street.out.motorway_elevated,
         area_street.out.other_elevated,
         area_street.out.bridge_motorway,
@@ -266,7 +189,6 @@ workflow {
     mass_other(
         area_other.out.airport,
         area_other.out.parking,
-        area_impervious.out.remaining,
         collection.out.zone,
         mi.out.other
     )
@@ -274,12 +196,11 @@ workflow {
 
     // mass of buildings
     mass_building(
-        area_building.out.hard_lr,   volume_building.out.hard_lr,
-        area_building.out.hard_mr,  volume_building.out.hard_mr,
-        area_building.out.wood_lr,   volume_building.out.wood_lr,
-        area_building.out.wood_mr,   volume_building.out.wood_mr,
-        area_building.out.high,  volume_building.out.high,
-        area_building.out.sky,   volume_building.out.sky,
+        volume_building.out.sdr,
+        volume_building.out.dlr,
+        volume_building.out.ci,
+        volume_building.out.mixed,
+        volume_building.out.traditional,
         collection.out.zone,
         mi.out.building
     )

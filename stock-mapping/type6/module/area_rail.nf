@@ -53,13 +53,13 @@ workflow area_rail {
 
 // rasterized OSM rail layer (area [m²])
 /** 15 bands
- 1  rail                         -> shinkansen
+ 1  rail                         -> railway
  2  abandoned                    -> exclude
  3  disused                      -> other
  4  tram                         -> tram
  5  light_rail                   -> railway
  6  subway                       -> subway
- 7  narrow_gauge                 -> railway
+ 7  narrow_gauge                 -> other
  8  preserved                    -> other
  9  platform                     -> exclude
 10  construction                 -> exclude

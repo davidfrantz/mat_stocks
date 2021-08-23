@@ -1,6 +1,6 @@
 # Mapping of material stocks
 
-- ``stock-mapping_jpn.nf``: stock mapping script as used for UGS (TBD et al. in early prep).
+- ``stock-mapping_uga.nf``: stock mapping script as used for UGA (TBD et al. in early prep).
 
 - run like this: 
 
@@ -12,9 +12,5 @@ nextflow -Dnxf.pool.type=sync run -resume /data/Jakku/mat_stocks/git/mat_stocks/
 
 TODO:
 
-in area_rail: 
-
-different aggregation here, new shinkansen category, and narrow_gauges go to the railway category
- 1  rail                         -> shinkansen
- 7  narrow_gauge                 -> railway
- 
+probably substitute MS building footprints with fractional cover
+if so, use area threshold to clean at lower end

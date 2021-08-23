@@ -9,7 +9,7 @@ include { finalize }                           from './finalize.nf'
 workflow mass_other {
 
     take:
-    airport; parking; remaining;
+    airport; parking;
     zone; mi
 
 
@@ -24,17 +24,11 @@ workflow mass_other {
     parking = parking
     .combine( Channel.from("parking") )
     .combine( mi.map{ tab -> [tab.material, tab.parking] } )
-    
-    // tile, state, file, type, material, mi
-    remaining = remaining
-    .combine( Channel.from("remaining") )
-    .combine( mi.map{ tab -> [tab.material, tab.impervious] } )
 
 
     // tile, state, file, type, material, mi, pubdir -> mass
     airport
-    .mix(parking,
-         remaining)
+    .mix(parking)
     .map{ it[0..-1]
           .plus("$params.dir.pub/" + it[1,0].join("/") + "/mass/other/" + it[4]) } \
     | mass
@@ -43,8 +37,7 @@ workflow mass_other {
     // tile, state, type, material, 3 x files, pubdir -> mass_other_total
     multijoin([ 
         mass.out.filter{ it[2].equals('airport')}.map{ remove(it, 2) },
-        mass.out.filter{ it[2].equals('parking')}.map{ remove(it, 2) },
-        mass.out.filter{ it[2].equals('remaining')}.map{ remove(it, 2) }], 
+        mass.out.filter{ it[2].equals('parking')}.map{ remove(it, 2) }], 
         [0,1,2] )
     .filter{ it[2].equals('total')} \
     .map{ it[0..-1]
@@ -74,7 +67,7 @@ process mass_other_total {
 
     input:
     tuple val(tile), val(state), val(material), 
-        file(airport), file(parking), file(remaining), val(pubdir)
+        file(airport), file(parking), val(pubdir)
 
     output:
     tuple val(tile), val(state), val("total"), val(material), file('mass_other_total.tif')
@@ -85,8 +78,7 @@ process mass_other_total {
     gdal_calc.py \
         -A $airport \
         -B $parking \
-        -C $remaining \
-        --calc="(A+B+C)" \
+        --calc="(A+B)" \
         --outfile=mass_other_total.tif \
         $params.gdal.calc_opt_float
     """

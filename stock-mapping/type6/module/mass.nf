@@ -28,14 +28,15 @@ process mass {
 }
 
 
-// two component mass (area & volume)
-process mass_2comp {
+process mass_climate5 {
 
     label 'gdal'
     label 'mem_2'
 
     input:
-    tuple val(tile), val(state), file(input_area), file(input_volume), val(type), val(material), val(mi_area), val(mi_volume), val(pubdir)
+    tuple val(tile), val(state), file(input), file(climate), 
+        val(type), val(material), 
+        val(mi1), val(mi2), val(mi3), val(mi4), val(mi5), val(pubdir)
 
     output:
     tuple val(tile), val(state), val(type), val(material), file('mass*.tif')
@@ -43,17 +44,61 @@ process mass_2comp {
     publishDir "$pubdir", mode: 'copy'
 
     """
-    base=$input_area
+    base=$input
     base=\$(basename \$base)
     base=\${base/area/mass}
     base=\${base/volume/mass}
     base=\${base%%.tif}
     gdal_calc.py \
-        -A $input_area \
-        -B $input_volume \
-        --calc="( A * $mi_area + B * $mi_volume )" \
+        -A $input \
+        -B $climate \
+        --calc="( \
+            ( A * (B == 1) * $mi1 ) + \
+            ( A * (B == 2) * $mi2 ) + \
+            ( A * (B == 3) * $mi3 ) + \
+            ( A * (B == 4) * $mi4 ) + \
+            ( A * (B == 5) * $mi5 ) )" \
         --outfile=\$base"_"$material".tif" \
         $params.gdal.calc_opt_float
     """
 
 }
+
+
+process mass_climate6 {
+
+    label 'gdal'
+    label 'mem_2'
+
+    input:
+    tuple val(tile), val(state), file(input), file(climate), 
+        val(type), val(material), 
+        val(mi1), val(mi2), val(mi3), val(mi4), val(mi5), val(mi6), val(pubdir)
+
+    output:
+    tuple val(tile), val(state), val(type), val(material), file('mass*.tif')
+
+    publishDir "$pubdir", mode: 'copy'
+
+    """
+    base=$input
+    base=\$(basename \$base)
+    base=\${base/area/mass}
+    base=\${base/volume/mass}
+    base=\${base%%.tif}
+    gdal_calc.py \
+        -A $input \
+        -B $climate \
+        --calc="( \
+            ( A * (B == 1) * $mi1 ) + \
+            ( A * (B == 2) * $mi2 ) + \
+            ( A * (B == 3) * $mi3 ) + \
+            ( A * (B == 4) * $mi4 ) + \
+            ( A * (B == 5) * $mi5 ) + \
+            ( A * (B == 6) * $mi6 ) )" \
+        --outfile=\$base"_"$material".tif" \
+        $params.gdal.calc_opt_float
+    """
+
+}
+
