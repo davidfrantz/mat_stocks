@@ -1,10 +1,15 @@
+#!/usr/bin/env Rscript
+
 require(dplyr)
 require(tidyr)
 
-cnt <- "GBR"
+args <- commandArgs(trailingOnly = TRUE)
+
+cnt <- args[1]
 dbase <- "/data/Jakku/mat_stocks"
 dstock <- sprintf("%s/stock/%s/ALL", dbase, cnt)
 dcsv <- sprintf("%s/git/mat_stocks/paper/%s/csv", dbase, cnt)
+dir.create(dcsv)
 
 files <-    dstock %>%
             dir(".csv", full.names = TRUE, recursive = TRUE) %>%
