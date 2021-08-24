@@ -41,7 +41,7 @@ params.raster = [
     "runway":           [params.dir.osm,        "runway.tif"],
     "parking":          [params.dir.osm,        "parking.tif"],
     "footprint":        [params.dir.footprint,  "bld.tif"],
-    "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
+    "type":             [params.dir.type,       "UGA-BUILDING-TYPE_HL_ML_MLP.tif" ],
     "areacorr":         [params.dir.areacorr,   "true_area.tif"]
 ]
 
@@ -90,10 +90,8 @@ include { mi }                              from './module/import_mi.nf'
 include { area_street }                     from './module/area_street.nf'
 include { area_rail }                       from './module/area_rail.nf'
 include { area_other }                      from './module/area_other.nf'
-include { area_aboveground_infrastructure } from './module/area_aboveground_infrastructure.nf'
 include { area_building }                   from './module/area_building.nf'
 include { volume_building }                 from './module/volume_building.nf'
-include { area_impervious }                 from './module/area_impervious.nf'
 include { mass_street }                     from './module/mass_street.nf'
 include { mass_rail }                       from './module/mass_rail.nf'
 include { mass_other }                      from './module/mass_other.nf'

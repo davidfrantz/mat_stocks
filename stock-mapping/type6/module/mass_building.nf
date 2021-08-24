@@ -18,6 +18,11 @@ workflow mass_building {
     main:
 
     // tile, state, file, type, material, mi
+    sdr = sdr
+    .combine( Channel.from("sdr") )
+    .combine( mi.map{ tab -> [tab.material, tab.sdr] } )
+
+    // tile, state, file, type, material, mi
     dlr = dlr
     .combine( Channel.from("dlr") )
     .combine( mi.map{ tab -> [tab.material, tab.dlr] } )
@@ -65,8 +70,7 @@ workflow mass_building {
 
     // tile, state, category, dimension, material, basename, filename -> 1st channel of finalize
     all_published = mass_building_total.out
-    .mix(mass.out,
-         mass_climate5.out)
+    .mix(mass.out)
     .map{
         [ it[0], it[1], "building", "mass", it[3], it[4].name, it[4] ] }
 
