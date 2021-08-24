@@ -42,7 +42,7 @@ params.raster = [
     "runway":           [params.dir.osm,        "runway.tif"],
     "parking":          [params.dir.osm,        "parking.tif"],
     "impervious":       [params.dir.impervious, "FRACTIONS_BU-WV-NWV-W_clean.tif"],
-    "height":           [params.dir.height,     "UK-BUILDING-HEIGHT_HL_ML_MLP.tif"],
+    "height":           [params.dir.height,     "HEIGHT_HL_ML_MLP_height-jpn.tif"],
     "type":             [params.dir.type,       "BUILDING-TYPE_HL_ML_MLP.tif" ],
     "areacorr":         [params.dir.areacorr,   "true_area.tif"]
 ]
@@ -276,12 +276,12 @@ workflow {
 
     // mass of buildings
     mass_building(
-        area_building.out.hard_lr,   volume_building.out.hard_lr,
-        area_building.out.hard_mr,  volume_building.out.hard_mr,
-        area_building.out.wood_lr,   volume_building.out.wood_lr,
-        area_building.out.wood_mr,   volume_building.out.wood_mr,
-        area_building.out.high,  volume_building.out.high,
-        area_building.out.sky,   volume_building.out.sky,
+        area_building.out.hard_lr, volume_building.out.hard_lr,
+        area_building.out.hard_mr, volume_building.out.hard_mr,
+        area_building.out.wood_lr, volume_building.out.wood_lr,
+        area_building.out.wood_mr, volume_building.out.wood_mr,
+        area_building.out.high,    volume_building.out.high,
+        area_building.out.sky,     volume_building.out.sky,
         collection.out.zone,
         mi.out.building
     )
