@@ -12,3 +12,5 @@ Input data for Northern Ireland are different. This is why Northern Ireland was 
 cd /data/Jakku/mat_stocks/stock/IRL
 nextflow -Dnxf.pool.type=sync run -resume /data/Jakku/mat_stocks/git/mat_stocks/stock-mapping/type4/stock-mapping_irl.nf -w /data/Alderaan/stock -with-dag flowchart.html -with-report report.html
 ```
+
+TODO: update newest values from Michal
