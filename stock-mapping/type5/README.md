@@ -11,3 +11,5 @@ nextflow -Dnxf.pool.type=sync run -resume /data/Jakku/mat_stocks/git/mat_stocks/
 ```
 
 TODO: 4 height classes?
+TODO: new micro-zones
+TODO: as of now, no mass, only dimensions
