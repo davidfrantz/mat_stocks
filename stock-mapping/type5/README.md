@@ -9,3 +9,7 @@
 cd /data/Jakku/mat_stocks/stock/JPN
 nextflow -Dnxf.pool.type=sync run -resume /data/Jakku/mat_stocks/git/mat_stocks/stock-mapping/type5/stock-mapping_jpn.nf -w /data/Alderaan/stock -with-dag flowchart.html -with-report report.html
 ```
+
+TODO: 4 height classes?
+TODO: new micro-zones
+TODO: as of now, no mass, only dimensions
