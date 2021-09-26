@@ -220,7 +220,7 @@ workflow {
 
 
     // mass of streets
-    mass_street(
+/**    mass_street(
         area_street.out.motorway,
         area_street.out.motorway_link,
         area_street.out.trunk,
@@ -246,10 +246,10 @@ workflow {
         collection.out.zone,
         mi.out.street,
     )
-
+**/
 
     // mass of rails
-    mass_rail(
+/**    mass_rail(
         area_rail.out.shinkansen,
         area_rail.out.railway,
         area_rail.out.tram,
@@ -262,20 +262,20 @@ workflow {
         collection.out.zone,
         mi.out.rail
     )
-
+**/
 
     // mass of other infrastructure
-    mass_other(
+/**    mass_other(
         area_other.out.airport,
         area_other.out.parking,
         area_impervious.out.remaining,
         collection.out.zone,
         mi.out.other
     )
-
+**/
 
     // mass of buildings
-    mass_building(
+/**    mass_building(
         area_building.out.hard_lr, volume_building.out.hard_lr,
         area_building.out.hard_mr, volume_building.out.hard_mr,
         area_building.out.wood_lr, volume_building.out.wood_lr,
@@ -285,15 +285,15 @@ workflow {
         collection.out.zone,
         mi.out.building
     )
-
+**/
 
     // total techno-mass
-    mass_grand_total(
+/**    mass_grand_total(
         mass_street.out.total,
         mass_rail.out.total,
         mass_other.out.total,
         mass_building.out.total,
         collection.out.zone
     )
-
+**/
 }
