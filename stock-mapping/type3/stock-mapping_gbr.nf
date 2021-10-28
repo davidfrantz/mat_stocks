@@ -33,7 +33,7 @@ params.dir = [
 // raster collections
 params.raster = [
     "mask":             [params.dir.mask,       "mask.tif"],
-    "zone":             [params.dir.zone,       "counties.tif"],
+    "zone":             [params.dir.zone,       "zones.tif"],
     "street":           [params.dir.osm,        "streets.tif"],
     "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
     "rail":             [params.dir.osm,        "railway.tif"],
@@ -66,9 +66,10 @@ params.class = [
     "light":     6,
     // additional bulding type classes (set within workflow)
     "sdr_mr":    7,
-    "dcmix_mr":  8,
-    "high":      9,
-    "sky":      10
+    "sdr_hr":    8,
+    "dcmix_mr":  9,
+    "dcmix_hr": 10,
+    "sky":      11
 ]
 
 params.threshold = [
@@ -207,11 +208,12 @@ workflow {
     volume_building(
         area_building.out.sdr_lr,
         area_building.out.sdr_mr,
+        area_building.out.sdr_hr,
         area_building.out.dcmix_lr,
         area_building.out.dcmix_mr,
+        area_building.out.dcmix_hr,
         area_building.out.irh,
         area_building.out.light,
-        area_building.out.high,
         area_building.out.sky,
         property_building.out.height,
         collection.out.zone)
@@ -282,11 +284,12 @@ workflow {
     mass_building(
         area_building.out.sdr_lr,   volume_building.out.sdr_lr,
         area_building.out.sdr_mr,   volume_building.out.sdr_mr,
+        area_building.out.sdr_hr,   volume_building.out.sdr_hr,
         area_building.out.dcmix_lr, volume_building.out.dcmix_lr,
         area_building.out.dcmix_mr, volume_building.out.dcmix_mr,
+        area_building.out.dcmix_hr, volume_building.out.dcmix_hr,
         area_building.out.irh,      volume_building.out.irh,
         area_building.out.light,    volume_building.out.light,
-        area_building.out.high,     volume_building.out.high,
         area_building.out.sky,      volume_building.out.sky,
         collection.out.zone,
         mi.out.building

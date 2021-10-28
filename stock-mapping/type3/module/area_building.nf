@@ -13,10 +13,11 @@ workflow area_building {
     main:
     area_building_sdr_lr(multijoin([area, type], [0,1]))
     area_building_sdr_mr(multijoin([area, type], [0,1]))
+    area_building_sdr_hr(multijoin([area, type], [0,1]))
     area_building_dcmix_lr(multijoin([area, type], [0,1]))
     area_building_dcmix_mr(multijoin([area, type], [0,1]))
+    area_building_dcmix_hr(multijoin([area, type], [0,1]))
     area_building_irh(multijoin([area, type], [0,1]))
-    area_building_high(multijoin([area, type], [0,1]))
     area_building_sky(multijoin([area, type], [0,1]))
     area_building_light(multijoin([area, type], [0,1]))
     
@@ -24,10 +25,11 @@ workflow area_building {
         area_building_light.out
         .mix(   area_building_sdr_lr.out,
                 area_building_sdr_mr.out,
+                area_building_sdr_hr.out,
                 area_building_dcmix_lr.out,
                 area_building_dcmix_mr.out,
+                area_building_dcmix_hr.out,
                 area_building_irh.out,
-                area_building_high.out,
                 area_building_sky.out)
         .map{
             [ it[0], it[1], "building", "area", "", it[2].name, it[2] ] }
@@ -38,11 +40,12 @@ workflow area_building {
     emit:
     sdr_lr   = area_building_sdr_lr.out
     sdr_mr   = area_building_sdr_mr.out
+    sdr_hr   = area_building_sdr_hr.out
     dcmix_lr = area_building_dcmix_lr.out
     dcmix_mr = area_building_dcmix_mr.out
+    dcmix_hr = area_building_dcmix_hr.out
     irh      = area_building_irh.out
     light    = area_building_light.out
-    high     = area_building_high.out
     sky      = area_building_sky.out
 
 }
@@ -126,6 +129,32 @@ process area_building_sdr_mr {
 }
 
 
+// building area of sdr_hr
+process area_building_sdr_hr {
+
+    label 'gdal'
+    label 'mem_2'
+
+    input:
+    tuple val(tile), val(state), file(area), file(type)
+
+    output:
+    tuple val(tile), val(state), file('area_building_sdr_hr.tif')
+
+    publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
+
+    """
+    gdal_calc.py \
+        -A $area \
+        -B $type \
+        --calc="( A * (B == $params.class.sdr_hr) )" \
+        --outfile=area_building_sdr_hr.tif \
+        $params.gdal.calc_opt_byte
+    """
+
+}
+
+
 // building area of dcmix_lr
 process area_building_dcmix_lr {
 
@@ -178,6 +207,32 @@ process area_building_dcmix_mr {
 }
 
 
+// building area of dcmix_hr
+process area_building_dcmix_hr {
+
+    label 'gdal'
+    label 'mem_2'
+
+    input:
+    tuple val(tile), val(state), file(area), file(type)
+
+    output:
+    tuple val(tile), val(state), file('area_building_dcmix_hr.tif')
+
+    publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
+
+    """
+    gdal_calc.py \
+        -A $area \
+        -B $type \
+        --calc="( A * (B == $params.class.dcmix_hr) )" \
+        --outfile=area_building_dcmix_hr.tif \
+        $params.gdal.calc_opt_byte
+    """
+
+}
+
+
 // building area of commercial/industrial
 process area_building_irh {
 
@@ -198,32 +253,6 @@ process area_building_irh {
         -B $type \
         --calc="( A * (B == $params.class.irh) )" \
         --outfile=area_building_irh.tif \
-        $params.gdal.calc_opt_byte
-    """
-
-}
-
-
-// building area of high buildings
-process area_building_high {
-
-    label 'gdal'
-    label 'mem_2'
-
-    input:
-    tuple val(tile), val(state), file(area), file(type)
-
-    output:
-    tuple val(tile), val(state), file('area_building_high.tif')
-
-    publishDir "$params.dir.pub/$state/$tile/area/building", mode: 'copy'
-
-    """
-    gdal_calc.py \
-        -A $area \
-        -B $type \
-        --calc="( A * (B == $params.class.high) )" \
-        --outfile=area_building_high.tif \
         $params.gdal.calc_opt_byte
     """
 
