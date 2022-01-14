@@ -32,7 +32,7 @@ params.dir = [
 // raster collections
 params.raster = [
     "mask":             [params.dir.mask,       "mask.tif"],
-    "zone":             [params.dir.zone,       "counties.tif"],
+    "zone":             [params.dir.zone,       "zone-local.tif"],
     "street":           [params.dir.osm,        "streets.tif"],
     "street_brdtun":    [params.dir.osm,        "road-brdtun.tif"],
     "rail":             [params.dir.osm,        "railway.tif"],
@@ -154,23 +154,11 @@ workflow {
     // area of aboveground infrastructure
     area_aboveground_infrastructure(
         area_street.out.motorway,
-        area_street.out.motorway_link,
-        area_street.out.trunk,
-        area_street.out.trunk_link,
         area_street.out.primary,
-        area_street.out.primary_link,
         area_street.out.secondary,
-        area_street.out.secondary_link,
         area_street.out.tertiary,
-        area_street.out.tertiary_link,
-        area_street.out.residential,
-        area_street.out.living_street,
-        area_street.out.pedestrian,
-        area_street.out.footway,
-        area_street.out.cycleway,
-        area_street.out.other,
+        area_street.out.minor,
         area_street.out.gravel,
-        area_street.out.exclude,
         area_street.out.motorway_elevated,
         area_street.out.other_elevated,
         area_street.out.bridge_motorway,
@@ -220,23 +208,12 @@ workflow {
 
 
     // mass of streets
-/**    mass_street(
+    mass_street(
         area_street.out.motorway,
-        area_street.out.motorway_link,
-        area_street.out.trunk,
-        area_street.out.trunk_link,
         area_street.out.primary,
-        area_street.out.primary_link,
         area_street.out.secondary,
-        area_street.out.secondary_link,
         area_street.out.tertiary,
-        area_street.out.tertiary_link,
-        area_street.out.residential,
-        area_street.out.living_street,
-        area_street.out.pedestrian,
-        area_street.out.footway,
-        area_street.out.cycleway,
-        area_street.out.other,
+        area_street.out.minor,
         area_street.out.gravel,
         area_street.out.motorway_elevated,
         area_street.out.other_elevated,
@@ -246,10 +223,10 @@ workflow {
         collection.out.zone,
         mi.out.street,
     )
-**/
+
 
     // mass of rails
-/**    mass_rail(
+    mass_rail(
         area_rail.out.shinkansen,
         area_rail.out.railway,
         area_rail.out.tram,
@@ -262,38 +239,38 @@ workflow {
         collection.out.zone,
         mi.out.rail
     )
-**/
+
 
     // mass of other infrastructure
-/**    mass_other(
+    mass_other(
         area_other.out.airport,
         area_other.out.parking,
         area_impervious.out.remaining,
         collection.out.zone,
         mi.out.other
     )
-**/
+
 
     // mass of buildings
-/**    mass_building(
-        area_building.out.hard_lr, volume_building.out.hard_lr,
-        area_building.out.hard_mr, volume_building.out.hard_mr,
-        area_building.out.wood_lr, volume_building.out.wood_lr,
-        area_building.out.wood_mr, volume_building.out.wood_mr,
-        area_building.out.high,    volume_building.out.high,
-        area_building.out.sky,     volume_building.out.sky,
+    mass_building(
+        volume_building.out.hard_lr,
+        volume_building.out.hard_mr,
+        volume_building.out.wood_lr,
+        volume_building.out.wood_mr,
+        volume_building.out.high,
+        volume_building.out.sky,
         collection.out.zone,
         mi.out.building
     )
-**/
+
 
     // total techno-mass
-/**    mass_grand_total(
+    mass_grand_total(
         mass_street.out.total,
         mass_rail.out.total,
         mass_other.out.total,
         mass_building.out.total,
         collection.out.zone
     )
-**/
+
 }
