@@ -105,7 +105,7 @@ process area_ag_street_infrastructure {
         -U $bridge_motorway \
         -V $bridge_other \
         -Z $tunnel \
-        --calc='minimum((maximum((single(A+E+G+I+J+Q+S+T+U+V)-Z),0)+(H+I+J+K)),100)' \
+        --calc='minimum((maximum((single(A+E+G+I+J+Q)-Z),0)+ (S+T+U+V)),100)' \
         --outfile=area_ag_street_infrastructure.tif \
         $params.gdal.calc_opt_byte
     """

@@ -16,4 +16,7 @@ TODO: new micro-zones
       put in config
 
 Note: only used one MI for airport infrastructure. Given the small mass, it was not worth to change the workflow
+
 Note: for parking and impervious: used MI of tertiary road
+
+Note: trunk roads were put in motorway category
