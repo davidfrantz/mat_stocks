@@ -10,7 +10,7 @@ workflow mass_street {
 
     take:
     motorway; primary; secondary; tertiary; 
-    minor; gravel;
+    local; gravel;
     motorway_elevated; other_elevated;
     bridge_motorway; bridge_other; tunnel;
     zone; mi
@@ -39,9 +39,9 @@ workflow mass_street {
     .combine( mi.map{ tab -> [tab.material, tab.tertiary]} )
 
     // tile, state, file, type, material, mi
-    minor = minor
-    .combine( Channel.from("minor") )
-    .combine( mi.map{ tab -> [tab.material, tab.minor]} )
+    local = local
+    .combine( Channel.from("local") )
+    .combine( mi.map{ tab -> [tab.material, tab.local]} )
 
     // tile, state, file, type, material, mi
     gravel = gravel
@@ -79,7 +79,7 @@ workflow mass_street {
     .mix(primary,
          secondary,
          tertiary,
-         minor,
+         local,
          gravel,
          motorway_elevated,
          other_elevated,
@@ -97,7 +97,7 @@ workflow mass_street {
         mass.out.filter{ it[2].equals('primary')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('secondary')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('tertiary')}.map{ remove(it, 2) },
-        mass.out.filter{ it[2].equals('minor')}.map{ remove(it, 2) },
+        mass.out.filter{ it[2].equals('local')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('gravel')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('motorway_elevated')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('other_elevated')}.map{ remove(it, 2) },
@@ -135,7 +135,7 @@ process mass_street_total {
     tuple val(tile), val(state), val(material), 
         file(motorway), file(primary), 
         file(secondary), file(tertiary), 
-        file(minor), file(gravel), file(motorway_elevated), 
+        file(local), file(gravel), file(motorway_elevated), 
         file(other_elevated), file(bridge_motorway), 
         file(bridge_other), file(tunnel), val(pubdir)
 
@@ -150,7 +150,7 @@ process mass_street_total {
         -E $primary \
         -G $secondary \
         -I $tertiary \
-        -J $minor \
+        -J $local \
         -Q $gravel \
         -R $motorway_elevated \
         -S $other_elevated \

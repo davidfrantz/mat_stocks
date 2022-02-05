@@ -14,7 +14,7 @@ workflow area_rail {
     area_rail_shinkansen(rail)
     area_rail_railway(rail)
     area_rail_tram(rail)
-    area_rail_other(rail)
+    //area_rail_other(rail)
     area_rail_exclude(rail)
     area_rail_subway(rail)
     area_rail_subway_elevated(rail)
@@ -26,7 +26,7 @@ workflow area_rail {
         area_rail_shinkansen.out
         .mix(   area_rail_railway.out,
                 area_rail_tram.out,
-                area_rail_other.out,
+                //area_rail_other.out,
                 area_rail_exclude.out,
                 area_rail_subway.out,
                 area_rail_subway_elevated.out,
@@ -43,7 +43,7 @@ workflow area_rail {
     shinkansen      = area_rail_shinkansen.out
     railway         = area_rail_railway.out
     tram            = area_rail_tram.out
-    other           = area_rail_other.out
+    //other           = area_rail_other.out
     exclude         = area_rail_exclude.out
     subway          = area_rail_subway.out
     subway_elevated = area_rail_subway_elevated.out
@@ -58,19 +58,19 @@ workflow area_rail {
 /** 15 bands
  1  rail                         -> shinkansen
  2  abandoned                    -> exclude
- 3  disused                      -> other
+ 3  disused                      -> exclude
  4  tram                         -> tram
- 5  light_rail                   -> railway
+ 5  light_rail                   -> tram
  6  subway                       -> subway
  7  narrow_gauge                 -> railway
- 8  preserved                    -> other
+ 8  preserved                    -> exclude
  9  platform                     -> exclude
 10  construction                 -> exclude
 11  subway ground (bridge)       -> subway_elevated
 12  subway ground(surface level) -> subway_surface
-13  funicular                    -> other
-14  monorail                     -> other
-15  miniature                    -> other
+13  funicular                    -> tram
+14  monorail                     -> tram
+15  miniature                    -> tram
 **/
 
 
@@ -109,7 +109,6 @@ process area_rail_shinkansen {
 process area_rail_railway {
 
     label 'gdal'
-    label 'mem_2'
 
     input:
     tuple val(tile), val(state), file(rail)
@@ -122,8 +121,7 @@ process area_rail_railway {
     """
     gdal_calc.py \
         -A $rail --A_band=7 \
-        -B $rail --B_band=5 \
-        --calc='minimum((A+B),100)' \
+        --calc='A' \
         --outfile=area_rail_railway.tif \
         $params.gdal.calc_opt_byte
     """
@@ -135,6 +133,7 @@ process area_rail_railway {
 process area_rail_tram {
 
     label 'gdal'
+    label 'mem_5'
 
     input:
     tuple val(tile), val(state), file(rail)
@@ -147,19 +146,23 @@ process area_rail_tram {
     """
     gdal_calc.py \
         -A $rail --A_band=4 \
-        --calc='minimum(A,100)' \
+        -B $rail --B_band=5 \
+        -C $rail --C_band=13 \
+        -D $rail --D_band=14 \
+        -E $rail --E_band=15 \
+        --calc='minimum((A+B+C+D+E),100)' \
         --outfile=area_rail_tram.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
 
-
+/**
 // area [m²] of other rail types
 process area_rail_other {
 
     label 'gdal'
-    label 'mem_6'
+    label 'mem_2'
 
     input:
     tuple val(tile), val(state), file(rail)
@@ -171,18 +174,15 @@ process area_rail_other {
 
     """
     gdal_calc.py \
-        -A $rail --A_band=3 \
-        -C $rail --C_band=8 \
-        -D $rail --D_band=13 \
-        -E $rail --E_band=14 \
-        -F $rail --F_band=15 \
-        --calc='minimum((A+C+D+E+F),100)' \
+        -A $rail --A_band=.. \
+        -B $rail --B_band=.. \
+        --calc='minimum((A+B+...),100)' \
         --outfile=area_rail_other.tif \
         $params.gdal.calc_opt_byte
     """
 
 }
-
+**/
 
 // area [m²] of rails with no man-made material (decommissioned)
 // - should be subtracted from impervious surfaces,
@@ -190,7 +190,7 @@ process area_rail_other {
 process area_rail_exclude {
 
     label 'gdal'
-    label 'mem_3'
+    label 'mem_5'
 
     input:
     tuple val(tile), val(state), file(rail)
@@ -203,9 +203,11 @@ process area_rail_exclude {
     """
     gdal_calc.py \
         -A $rail --A_band=2 \
-        -B $rail --B_band=9 \
-        -C $rail --C_band=10 \
-        --calc='minimum((A+B+C),100)' \
+        -B $rail --B_band=3 \
+        -C $rail --C_band=8 \
+        -D $rail --D_band=9 \
+        -E $rail --E_band=10 \
+        --calc='minimum((A+B+C+D+E),100)' \
         --outfile=area_rail_exclude.tif \
         $params.gdal.calc_opt_byte
     """

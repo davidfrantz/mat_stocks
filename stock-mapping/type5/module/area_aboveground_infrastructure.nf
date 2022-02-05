@@ -11,7 +11,7 @@ workflow area_aboveground_infrastructure {
     street_primary
     street_secondary
     street_tertiary
-    street_minor
+    street_local
     street_gravel
     street_motorway_elevated
     street_other_elevated
@@ -21,7 +21,7 @@ workflow area_aboveground_infrastructure {
     rail_shinkansen
     rail_railway
     rail_tram
-    rail_other
+    //rail_other
     rail_exclude
     rail_subway_elevated
     rail_subway_surface
@@ -36,7 +36,7 @@ workflow area_aboveground_infrastructure {
         multijoin(
            [street_motorway, street_primary, 
             street_secondary, street_tertiary, 
-            street_minor, street_gravel, 
+            street_local, street_gravel, 
             street_motorway_elevated, 
             street_other_elevated, street_bridge_motorway, 
             street_bridge_other, street_tunnel], [0,1])
@@ -47,7 +47,7 @@ workflow area_aboveground_infrastructure {
            [rail_shinkansen,
             rail_railway, 
             rail_tram,
-            rail_other, 
+            //rail_other, 
             rail_exclude, 
             rail_subway_elevated, 
             rail_subway_surface, 
@@ -85,7 +85,7 @@ process area_ag_street_infrastructure {
     tuple val(tile), val(state), 
           file(motorway), file(primary), 
           file(secondary), file(tertiary), 
-          file(minor), file(gravel),
+          file(local), file(gravel),
           file(motorway_elevated), file(other_elevated), 
           file(bridge_motorway), file(bridge_other), file(tunnel)
 
@@ -98,7 +98,7 @@ process area_ag_street_infrastructure {
         -E $primary \
         -G $secondary \
         -I $tertiary \
-        -J $minor \
+        -J $local \
         -Q $gravel \
         -S $motorway_elevated \
         -T $other_elevated \
@@ -124,7 +124,7 @@ process area_ag_rail_infrastructure {
 
     input:
     tuple val(tile), val(state), 
-          file(shinkansen), file(rail), file(tram), file(other), 
+          file(shinkansen), file(rail), file(tram), //file(other), 
           file(exclude), file(subway_elevated), 
           file(subway_surface), file(bridge), 
           file(tunnel)
@@ -137,13 +137,12 @@ process area_ag_rail_infrastructure {
         -H $shinkansen \
         -A $rail \
         -B $tram \
-        -C $other \
         -D $exclude \
         -E $subway_elevated \
         -F $subway_surface \
         -G $bridge \
         -Z $tunnel \
-        --calc='minimum((maximum((single(H+A+B+C+D+F)-Z),0)+(E+G)),100)' \
+        --calc='minimum((maximum((single(H+A+B+D+F)-Z),0)+(E+G)),100)' \
         --outfile=area_ag_rail_infrastructure.tif \
         $params.gdal.calc_opt_byte
     """
