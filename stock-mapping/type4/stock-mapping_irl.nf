@@ -13,7 +13,7 @@ params.country      = "IRL"
 params.country_code = "IE"
 
 // project directory
-params.dir_project = "/data/Jakku/mat_stocks"
+params.dir_project = "/data/ahsoka/gi-sds/hub/mat_stocks"
 
 // directories
 params.dir = [
@@ -83,7 +83,7 @@ params.threshold = [
 // scaling factors
 params.scale = [
     "height":   10,
-    "building": 0.43
+    "building": 0.49
 ]
 
 // options for gdal
