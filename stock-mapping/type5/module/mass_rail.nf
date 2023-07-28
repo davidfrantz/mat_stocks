@@ -11,7 +11,8 @@ workflow mass_rail {
     take:
     shinkansen; railway; tram; subway; 
     subway_elevated; subway_surface; 
-    other; bridge; tunnel;
+    //other; 
+    bridge; tunnel;
     zone; mi
 
 
@@ -48,9 +49,9 @@ workflow mass_rail {
     .combine( mi.map{ tab -> [tab.material, tab.subway_surface] } )
 
     // tile, state, file, type, material, mi
-    other = other
-    .combine( Channel.from("other") )
-    .combine( mi.map{ tab -> [tab.material, tab.other] } )
+    //other = other
+    //.combine( Channel.from("other") )
+    //.combine( mi.map{ tab -> [tab.material, tab.other] } )
 
     // tile, state, file, type, material, mi
     bridge = bridge
@@ -70,7 +71,7 @@ workflow mass_rail {
          subway,
          subway_elevated,
          subway_surface,
-         other,
+         //other,
          bridge,
          tunnel)
     .map{ it[0..-1]
@@ -86,7 +87,7 @@ workflow mass_rail {
         mass.out.filter{ it[2].equals('subway')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('subway_elevated')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('subway_surface')}.map{ remove(it, 2) },
-        mass.out.filter{ it[2].equals('other')}.map{ remove(it, 2) },
+        //mass.out.filter{ it[2].equals('other')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('bridge')}.map{ remove(it, 2) },
         mass.out.filter{ it[2].equals('tunnel')}.map{ remove(it, 2) }],
         [0,1,2] )
@@ -120,7 +121,8 @@ process mass_rail_total {
     tuple val(tile), val(state), val(material), 
         file(shinkansen), file(railway), file(tram), file(subway), 
         file(subway_elevated), file(subway_surface), 
-        file(other), file(bridge), file(tunnel), val(pubdir)
+        //file(other), 
+        file(bridge), file(tunnel), val(pubdir)
 
     output:
     tuple val(tile), val(state), val("total"), val(material), file('mass_rail_total.tif')
@@ -135,10 +137,9 @@ process mass_rail_total {
         -C $subway \
         -D $subway_elevated \
         -E $subway_surface \
-        -F $other \
         -G $bridge \
         -H $tunnel \
-        --calc="(I+A+B+C+D+E+F+G+H)" \
+        --calc="(I+A+B+C+D+E+G+H)" \
         --outfile=mass_rail_total.tif \
         $params.gdal.calc_opt_float
     """

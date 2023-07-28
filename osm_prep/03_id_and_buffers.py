@@ -29,8 +29,8 @@ def main():
     elif(extension == ".sqlite"):
         driver = ogr.GetDriverByName("SQLite")
         
-    fd = ogr.FieldDefn("bwidth", ogr.OFTReal)
-    dataSource = driver.Open(inputPath,1)
+    #fd = ogr.FieldDefn("bwidth", ogr.OFTReal)
+    #dataSource = driver.Open(inputPath,1)
 		
     fd = ogr.FieldDefn("bwidth", ogr.OFTReal)
     fd2 = ogr.FieldDefn("layer", ogr.OFTInteger)
