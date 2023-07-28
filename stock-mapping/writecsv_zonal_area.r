@@ -6,7 +6,7 @@ require(tidyr)
 args <- commandArgs(trailingOnly = TRUE)
 
 cnt <- args[1]
-dbase <- "/data/Jakku/mat_stocks"
+dbase <- "/data/ahsoka/gi-sds/hub/mat_stocks"
 dstock <- sprintf("%s/stock/%s/ALL/area", dbase, cnt)
 dcsv <- sprintf("%s/git/mat_stocks/paper/%s/csv", dbase, cnt)
 dir.create(dcsv)
